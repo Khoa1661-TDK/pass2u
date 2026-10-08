@@ -10,6 +10,7 @@ import { searchListings } from "@/lib/queries";
 import { CATEGORIES } from "@/lib/constants";
 import { Logo } from "@/components/logo";
 import { ListingGrid } from "@/components/listing-card";
+import { FallbackImg } from "@/components/fallback-img";
 import {
   ArrowRight, MagnifyingGlass, BookOpenText, DeviceMobile, Armchair, TShirt, PencilSimpleLine,
   Package, IdentificationCard, ShieldCheck, Trash,
@@ -30,6 +31,18 @@ const STATIC_CAT = new Set(
     ? readdirSync(join(process.cwd(), "public/categories")).filter((f) => f.endsWith(".jpg")).map((f) => f.slice(0, -4))
     : [],
 );
+
+// Stock product photos per category, used until a category has a live
+// listing whose cover can stand in. Swap for the team's own shots any time.
+const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=480&h=480&q=70`;
+const STOCK_CAT: Record<string, string> = {
+  textbooks: unsplash("1512820790803-83ca734da794"),
+  electronics: unsplash("1496181133206-80ce9b88a853"),
+  dorm: unsplash("1505693416388-ac5ce068fe85"),
+  clothing: unsplash("1523381210434-271e8be1f52b"),
+  stationery: unsplash("1456735190827-d1262f71b8a3"),
+  other: unsplash("1586495777744-4413f21062fa"),
+};
 
 const QUICK = ["Giáo trình", "Quạt", "Áo đồng phục", "Máy tính Casio"];
 
@@ -109,7 +122,7 @@ export default async function Landing() {
             {CATEGORIES.map((c, i) => {
               const I = CAT_ICONS[c.value] ?? Package;
               const n = counts[c.value]?.n;
-              const img = counts[c.value]?.cover ?? (STATIC_CAT.has(c.value) ? `/categories/${c.value}.jpg` : null);
+              const img = counts[c.value]?.cover ?? (STATIC_CAT.has(c.value) ? `/categories/${c.value}.jpg` : STOCK_CAT[c.value] ?? null);
               return (
                 <li key={c.value} style={{ "--i": i } as React.CSSProperties} className="shrink-0">
                   <Link
@@ -118,8 +131,11 @@ export default async function Landing() {
                   >
                     <span className="relative block aspect-square overflow-hidden rounded-lg bg-sunken ring-1 ring-line">
                       {img ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={img} alt="" loading="lazy" className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out)] [@media(hover:hover)]:group-hover:scale-[1.05]" />
+                        <FallbackImg
+                          src={img}
+                          className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out)] [@media(hover:hover)]:group-hover:scale-[1.05]"
+                          fallback={<span className="grid size-full place-items-center"><I size={32} className="text-ink-3" /></span>}
+                        />
                       ) : (
                         <span className="grid size-full place-items-center">
                           <I size={32} className="text-ink-3 transition-colors group-hover:text-accent-ink" />
