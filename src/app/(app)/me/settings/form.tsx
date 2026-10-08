@@ -1,15 +1,21 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { updateProfile } from "@/app/actions/profile";
 import { CAMPUSES } from "@/lib/constants";
 import { FormMessage, SubmitButton } from "@/components/ui";
 
 export function SettingsForm({ defaults }: { defaults: { displayName: string; bio: string; campus: string } }) {
   const [state, action] = useActionState(updateProfile, undefined);
+  const router = useRouter();
+  // Pull the fresh profile into the header, profile page and this form.
+  useEffect(() => {
+    if (state?.ok) router.refresh();
+  }, [state, router]);
   const v = { ...defaults, ...state?.fields };
   return (
-    <form action={action} className="space-y-5">
+    <form key={`${defaults.displayName}|${defaults.campus}|${defaults.bio}`} action={action} className="space-y-5">
       <FormMessage state={state} />
       <div>
         <label htmlFor="displayName" className="field-label">Display name</label>
