@@ -253,6 +253,23 @@
   .rise {
     animation: rise 260ms var(--ease-out) both;
   }
+  .page-enter {
+    animation: fade-in 220ms var(--ease-out) both;
+  }
+  /* Sections fade up as they scroll into view (browsers without
+     scroll-driven animations just show them). */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
   @keyframes rise {
     from {
       opacity: 0;

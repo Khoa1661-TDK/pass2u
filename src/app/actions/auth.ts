@@ -65,7 +65,7 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   if (u.bannedAt) return { error: "This account has been suspended. Contact the PASS2U team.", fields: { email } };
   await createSession(u.id);
   const next = String(fd.get("next") ?? "");
-  redirect(gateFor(u) ?? (u.role === "admin" ? "/admin" : next.startsWith("/") ? next : "/market"));
+  redirect(gateFor(u) ?? (next.startsWith("/") && !next.startsWith("//") ? next : "/market"));
 }
 
 export async function logout() {

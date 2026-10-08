@@ -56,7 +56,7 @@ async function adminLogin(browser: Browser) {
   await page.getByLabel("Email").fill(process.env.ADMIN_EMAIL ?? "admin@pass2u.test");
   await page.getByLabel("Password").fill(process.env.ADMIN_PASSWORD ?? "admin12345");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/admin/);
+  await expect(page).toHaveURL(/\/market/);
   return page;
 }
 

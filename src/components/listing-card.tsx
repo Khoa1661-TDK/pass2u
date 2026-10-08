@@ -4,8 +4,8 @@ import type { ListingCardData } from "@/lib/queries";
 
 export function ListingCard({ l }: { l: ListingCardData }) {
   return (
-    <Link href={`/listings/${l.id}`} className="group block rounded-lg outline-offset-4">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-sunken">
+    <Link href={`/listings/${l.id}`} className="group block rounded-lg outline-offset-4 transition-transform duration-200 ease-[var(--ease-out)] active:scale-[0.98] [@media(hover:hover)]:hover:-translate-y-1">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-sunken transition-shadow duration-200 [@media(hover:hover)]:group-hover:shadow-[0_14px_30px_-16px_oklch(0.3_0.03_42/0.45)]">
         {l.cover && (
           // eslint-disable-next-line @next/next/no-img-element
           <img

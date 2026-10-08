@@ -63,7 +63,7 @@ async function categoryCounts() {
 
 export default async function Landing() {
   const u = await getUser();
-  if (u) redirect(gateFor(u) ?? (u.role === "admin" ? "/admin" : "/market"));
+  if (u) redirect(gateFor(u) ?? "/market");
 
   const [recent, counts] = await Promise.all([searchListings({}, 12), categoryCounts()]);
   const avail = recent.filter((l) => l.status === "available").slice(0, 8);
@@ -88,11 +88,11 @@ export default async function Landing() {
           <div className="rise max-w-3xl">
             <p className="text-sm font-semibold text-accent-ink">The marketplace for FPT University students</p>
             <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.035em]">
-              Buy and swap on campus, <span className="text-ink-3">from students you can trust.</span>
+              <span className="rise inline-block" style={{ animationDelay: "40ms" }}>Buy and swap on campus,</span>{" "}<span className="rise inline-block text-ink-3" style={{ animationDelay: "140ms" }}>from students you can trust.</span>
             </h1>
           </div>
 
-          <form action="/market" method="get" role="search" className="rise mt-8 max-w-2xl" style={{ animationDelay: "60ms" }}>
+          <form action="/market" method="get" role="search" className="rise mt-8 max-w-2xl" style={{ animationDelay: "220ms" }}>
             <label htmlFor="hero-q" className="sr-only">Search listings</label>
             <div className="group flex items-center gap-2 rounded-lg border border-line-strong bg-raised p-1.5 pl-4 shadow-[0_10px_30px_-18px_oklch(0.3_0.03_42/0.45)] transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:shadow-[0_0_0_4px_oklch(0.64_0.19_42/0.15)] [@media(hover:hover)]:hover:border-ink-3">
               <MagnifyingGlass size={22} className="shrink-0 text-ink-3" />
@@ -116,7 +116,7 @@ export default async function Landing() {
         </section>
 
         {/* Categories */}
-        <section aria-labelledby="cats" className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 md:pb-20">
+        <section aria-labelledby="cats" className="reveal mx-auto max-w-6xl px-4 pb-14 sm:px-6 md:pb-20">
           <h2 id="cats" className="text-lg font-semibold">Shop by category</h2>
           <ul className="stagger scrollbar-none -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
             {CATEGORIES.map((c, i) => {
@@ -153,7 +153,7 @@ export default async function Landing() {
 
         {/* Real listings only. Nothing is shown when the market is empty. */}
         <section aria-labelledby="fresh" className="border-y border-line bg-sunken/50">
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
+          <div className="reveal mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <h2 id="fresh" className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold">Just listed</h2>
@@ -182,7 +182,7 @@ export default async function Landing() {
         </section>
 
         {/* Verification, kept short */}
-        <section aria-labelledby="verify" className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[0.9fr_1.1fr] md:gap-16 md:py-20">
+        <section aria-labelledby="verify" className="reveal mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[0.9fr_1.1fr] md:gap-16 md:py-20">
           <div>
             <h2 id="verify" className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold">Students only, checked by hand</h2>
             <p className="mt-3 max-w-[42ch] leading-relaxed text-ink-2">
@@ -205,7 +205,7 @@ export default async function Landing() {
         </section>
 
         {/* Compact CTA */}
-        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
+        <section className="reveal mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
           <div className="flex flex-col items-start justify-between gap-5 rounded-lg bg-ink px-6 py-7 text-bg sm:flex-row sm:items-center sm:px-8">
             <p className="max-w-[34ch] text-xl font-semibold leading-snug">Clearing out your dorm, or just moved in? Join in two minutes.</p>
             <div className="flex shrink-0 gap-2">
