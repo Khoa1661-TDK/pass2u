@@ -4,8 +4,6 @@ export const CATEGORIES = [
   { value: "dorm", label: "Dorm & household" },
   { value: "clothing", label: "Clothing & uniforms" },
   { value: "stationery", label: "Stationery" },
-  { value: "sports", label: "Sports & hobbies" },
-  { value: "vehicles", label: "Bikes & scooters" },
   { value: "other", label: "Other" },
 ] as const;
 

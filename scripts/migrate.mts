@@ -14,6 +14,9 @@ const sql = postgres(url, { prepare: false, max: 1, onnotice: () => {} });
 await migrate(drizzle(sql), { migrationsFolder: "./drizzle" });
 console.log("[migrate] schema up to date");
 
+// Sports and vehicle categories were dropped; fold their listings into Other.
+await sql`update listings set category = 'other' where category in ('sports', 'vehicles')`;
+
 const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
 if (ADMIN_EMAIL && ADMIN_PASSWORD) {
   const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);

@@ -12,7 +12,7 @@ import { Logo } from "@/components/logo";
 import { ListingGrid } from "@/components/listing-card";
 import {
   ArrowRight, MagnifyingGlass, BookOpenText, DeviceMobile, Armchair, TShirt, PencilSimpleLine,
-  Basketball, Bicycle, Package, IdentificationCard, ShieldCheck, Trash,
+  Package, IdentificationCard, ShieldCheck, Trash,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react";
 
@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 const CAT_ICONS: Record<string, Icon> = {
   textbooks: BookOpenText, electronics: DeviceMobile, dorm: Armchair, clothing: TShirt,
-  stationery: PencilSimpleLine, sports: Basketball, vehicles: Bicycle, other: Package,
+  stationery: PencilSimpleLine, other: Package,
 };
 
 // Optional photos the team drops into public/categories/<value>.jpg, used
@@ -105,7 +105,7 @@ export default async function Landing() {
         {/* Categories */}
         <section aria-labelledby="cats" className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 md:pb-20">
           <h2 id="cats" className="text-lg font-semibold">Shop by category</h2>
-          <ul className="stagger scrollbar-none -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 lg:grid-cols-8">
+          <ul className="stagger scrollbar-none -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
             {CATEGORIES.map((c, i) => {
               const I = CAT_ICONS[c.value] ?? Package;
               const n = counts[c.value]?.n;
