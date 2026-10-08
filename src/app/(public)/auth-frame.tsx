@@ -8,7 +8,7 @@ export function AuthFrame({ title, subtitle, children }: { title: string; subtit
       </header>
       <main className="flex flex-1 justify-center px-4 pb-16 pt-8 sm:pt-16">
         <div className="rise w-full max-w-[400px]">
-          <h1 className="text-[28px] font-bold">{title}</h1>
+          <h1 className="font-serif text-[2.25rem] font-normal leading-tight">{title}</h1>
           {subtitle && <p className="mt-2 text-ink-2">{subtitle}</p>}
           <div className="mt-8">{children}</div>
         </div>

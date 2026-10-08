@@ -17,7 +17,7 @@ export default async function Verify() {
       <>
         <Steps current={3} />
         <span className="tag bg-warn-soft text-warn">Under review</span>
-        <h1 className="mt-3 text-[28px] font-bold">We&rsquo;re checking your ID</h1>
+        <h1 className="mt-3 font-serif text-[2.25rem] font-normal leading-tight">We&rsquo;re checking your ID</h1>
         <p className="mt-3 text-ink-2">
           An admin will compare your card with the details you gave. Once you&rsquo;re approved, this page opens the marketplace. Refresh any time to check.
         </p>
@@ -37,7 +37,7 @@ export default async function Verify() {
           <p className="mt-1">{u.rejectionReason}</p>
         </div>
       )}
-      <h1 className="text-[28px] font-bold">Show us your student ID</h1>
+      <h1 className="font-serif text-[2.25rem] font-normal leading-tight">Show us your student ID</h1>
       <p className="mt-3 text-ink-2">
         PASS2U is only for FPT students. Take a clear photo of the front of your physical card.
       </p>

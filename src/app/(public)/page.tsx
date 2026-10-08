@@ -92,7 +92,7 @@ export default async function Landing() {
 
         <section className="mx-auto grid max-w-6xl items-end gap-8 px-4 pt-8 sm:px-6 md:grid-cols-[1.05fr_0.95fr] md:pt-6">
           <div className="pb-6 md:pb-32">
-            <h1 className="font-serif text-[clamp(2.6rem,5.6vw,4.4rem)] font-normal leading-[1.05] tracking-[-0.015em]">
+            <h1 className="font-serif text-[clamp(2.9rem,6.2vw,5rem)] font-normal leading-[1.02] tracking-[-0.01em]">
               <span className="rise block" style={{ animationDelay: "40ms" }}>Pass it on.</span>
               <span className="rise block" style={{ animationDelay: "140ms" }}>Pick it up.</span>
             </h1>
@@ -100,7 +100,7 @@ export default async function Landing() {
               Textbooks, uniforms and dorm gear from FPT students who no longer need them, at student prices.
             </p>
             <div className="rise mt-9 flex flex-wrap items-center gap-6" style={{ animationDelay: "300ms" }}>
-              <Link href="/market" className="inline-flex min-h-12 items-center rounded-sm bg-raised px-7 text-xs font-bold uppercase tracking-[0.16em] text-ink shadow-[0_10px_24px_-14px_oklch(0.3_0.05_42/0.5)] transition-[transform,box-shadow] duration-200 ease-[var(--ease-out)] active:scale-[0.97] [@media(hover:hover)]:hover:-translate-y-0.5">
+              <Link href="/market" className="btn-editorial">
                 Browse listings
               </Link>
               <Link href="/signup" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-accent-ink">
@@ -126,7 +126,7 @@ export default async function Landing() {
         <section className="relative z-10 mx-auto -mt-6 max-w-6xl px-4 pb-12 sm:px-6 md:-mt-14 md:pb-16">
           <form action="/market" method="get" role="search" className="rise max-w-2xl" style={{ animationDelay: "360ms" }}>
             <label htmlFor="hero-q" className="sr-only">Search listings</label>
-            <div className="group flex items-center gap-2 rounded-lg border border-line-strong bg-raised p-1.5 pl-4 shadow-[0_10px_30px_-18px_oklch(0.3_0.03_42/0.45)] transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:shadow-[0_0_0_4px_oklch(0.64_0.19_42/0.15)] [@media(hover:hover)]:hover:border-ink-3">
+            <div className="group flex items-center gap-2 rounded-sm border border-line-strong bg-raised p-1.5 pl-4 shadow-[0_10px_30px_-18px_oklch(0.3_0.03_42/0.45)] transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:shadow-[0_0_0_4px_oklch(0.64_0.19_42/0.15)] [@media(hover:hover)]:hover:border-ink-3">
               <MagnifyingGlass size={22} className="shrink-0 text-ink-3" />
               <input
                 id="hero-q"
@@ -135,7 +135,7 @@ export default async function Landing() {
                 placeholder="Textbooks, fans, uniforms…"
                 className="min-h-12 w-full min-w-0 bg-transparent text-base focus-visible:outline-none placeholder:text-ink-3"
               />
-              <button className="btn btn-primary !min-h-12 shrink-0 !px-5">Search</button>
+              <button className="btn-editorial btn-editorial-accent shrink-0 !min-h-11">Search</button>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
               <span className="text-ink-3">Try</span>
@@ -149,7 +149,7 @@ export default async function Landing() {
 
         {/* Categories */}
         <section aria-labelledby="cats" className="reveal mx-auto max-w-6xl px-4 pb-14 sm:px-6 md:pb-20">
-          <h2 id="cats" className="text-lg font-semibold">Shop by category</h2>
+          <h2 id="cats" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Shop by category</h2>
           <ul className="stagger scrollbar-none -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
             {CATEGORIES.map((c, i) => {
               const I = CAT_ICONS[c.value] ?? Package;
@@ -188,7 +188,7 @@ export default async function Landing() {
           <div className="reveal mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 id="fresh" className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold">Just listed</h2>
+                <h2 id="fresh" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Just listed</h2>
                 <p className="mt-1.5 text-ink-2">Posted by verified students. Sign in to message the seller.</p>
               </div>
               {featured.length > 0 && (
@@ -206,7 +206,7 @@ export default async function Landing() {
                   <Package size={32} className="mx-auto text-ink-3" />
                   <p className="mt-3 font-semibold">The shelves are empty for now</p>
                   <p className="mx-auto mt-1 max-w-[40ch] text-ink-2">Be the first to post. Seniors clearing out their dorm get the first buyers.</p>
-                  <Link href="/signup" className="btn btn-primary mt-6">Post an item</Link>
+                  <Link href="/signup" className="btn-editorial mt-6">Post an item</Link>
                 </div>
               )}
             </div>
@@ -216,7 +216,7 @@ export default async function Landing() {
         {/* Verification, kept short */}
         <section aria-labelledby="verify" className="reveal mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[0.9fr_1.1fr] md:gap-16 md:py-20">
           <div>
-            <h2 id="verify" className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold">Students only, checked by hand</h2>
+            <h2 id="verify" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Students only, checked by hand</h2>
             <p className="mt-3 max-w-[42ch] leading-relaxed text-ink-2">
               Every account shows a physical FPT student card before it can buy or sell. No outsiders, no resellers.
             </p>
@@ -229,7 +229,7 @@ export default async function Landing() {
             ].map(({ I, t, b }) => (
               <li key={t} className="bg-raised p-5">
                 <I size={24} className="text-accent-ink" />
-                <h3 className="mt-4 font-semibold">{t}</h3>
+                <h3 className="mt-4 font-serif text-xl">{t}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-ink-2">{b}</p>
               </li>
             ))}
@@ -239,9 +239,9 @@ export default async function Landing() {
         {/* Compact CTA */}
         <section className="reveal mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
           <div className="flex flex-col items-start justify-between gap-5 rounded-lg bg-ink px-6 py-7 text-bg sm:flex-row sm:items-center sm:px-8">
-            <p className="max-w-[34ch] text-xl font-semibold leading-snug">Clearing out your dorm, or just moved in? Join in two minutes.</p>
+            <p className="max-w-[30ch] font-serif text-[1.75rem] leading-tight">Clearing out your dorm, or just moved in? Join in two minutes.</p>
             <div className="flex shrink-0 gap-2">
-              <Link href="/signup" className="btn btn-primary group">
+              <Link href="/signup" className="btn-editorial btn-editorial-accent group">
                 Create account
                 <ArrowRight size={16} weight="bold" className="transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5" />
               </Link>

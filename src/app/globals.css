@@ -9,7 +9,7 @@
  */
 @theme {
   --font-sans: var(--font-be-vietnam), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-serif: var(--font-serif-display), ui-serif, Georgia, serif;
 
   --color-bg: oklch(0.992 0.002 42);
   --color-raised: oklch(0.998 0.001 42);
@@ -153,6 +153,44 @@
     min-height: 36px;
     padding: 0 0.75rem;
     font-size: 0.875rem;
+  }
+
+  /* Landing CTA style from the editorial reference: small spaced capitals
+     on a solid block, lifted with a soft shadow. */
+  .btn-editorial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0 1.75rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-raised);
+    color: var(--color-ink);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 10px 24px -14px oklch(0.3 0.05 42 / 0.5);
+    transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out), background-color 150ms var(--ease-out);
+    cursor: pointer;
+  }
+  .btn-editorial-accent {
+    background: var(--color-accent);
+    color: oklch(0.99 0.005 60);
+  }
+  @media (hover: hover) {
+    .btn-editorial:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -14px oklch(0.3 0.05 42 / 0.55);
+    }
+    .btn-editorial-accent:hover {
+      background: var(--color-accent-hover);
+    }
+  }
+  .btn-editorial:active {
+    transform: scale(0.97);
   }
 
   .field-label {

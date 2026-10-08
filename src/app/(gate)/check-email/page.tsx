@@ -11,7 +11,7 @@ export default async function CheckEmail() {
   return (
     <>
       <Steps current={1} />
-      <h1 className="text-[28px] font-bold">Check your inbox</h1>
+      <h1 className="font-serif text-[2.25rem] font-normal leading-tight">Check your inbox</h1>
       <p className="mt-3 text-ink-2">
         We sent a confirmation link to <strong className="font-semibold text-ink">{u.email}</strong>. Open it on any device to continue.
       </p>
