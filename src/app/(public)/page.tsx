@@ -18,7 +18,7 @@ export default async function Landing() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 sm:px-6">
-        <section className="grid gap-10 pb-16 pt-12 md:grid-cols-[1.1fr_0.9fr] md:items-end md:pt-20">
+        <section className="grid gap-10 pb-16 pt-12 md:grid-cols-[1.25fr_0.75fr] md:items-end md:gap-16 md:pt-20">
           <div className="rise">
             <p className="mb-5 inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-sm font-medium text-accent-ink">
               Only for verified FPT University students
@@ -35,18 +35,27 @@ export default async function Landing() {
             </div>
           </div>
 
-          <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-lg border border-line bg-line text-center md:mb-2">
-            {[
-              ["Sell", "Name your price in đồng"],
-              ["Swap", "Trade what you have"],
-              ["Give", "Pass it on for free"],
-            ].map(([t, d]) => (
-              <div key={t} className="bg-bg px-3 py-6">
-                <dt className="text-2xl font-bold tracking-tight">{t}</dt>
-                <dd className="mt-1 text-sm text-ink-3">{d}</dd>
-              </div>
-            ))}
-          </dl>
+          <div className="rise md:mb-2" style={{ animationDelay: "80ms" }}>
+            <p className="text-sm font-medium text-ink-3">What usually changes hands</p>
+            <ul className="mt-3 divide-y divide-line border-y border-line">
+              {[
+                ["Textbooks & lecture notes", "Sell"],
+                ["Desk fans, lamps, kettles", "Sell"],
+                ["Uniforms and PE kits", "Swap"],
+                ["Calculators and cables", "Sell"],
+                ["Leftover dorm supplies", "Free"],
+              ].map(([item, kind]) => (
+                <li key={item} className="flex items-center justify-between gap-4 py-3.5">
+                  <span className="font-medium">{item}</span>
+                  <span
+                    className={`tag ${kind === "Free" ? "bg-ok-soft text-ok" : kind === "Swap" ? "bg-sunken text-ink-2" : "bg-accent-soft text-accent-ink"}`}
+                  >
+                    {kind}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
 
         <section className="border-t border-line py-14" aria-labelledby="how">

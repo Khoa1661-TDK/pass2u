@@ -160,7 +160,7 @@ export function ListingForm({
         />
       </div>
 
-      <div className="sticky bottom-20 z-10 -mx-4 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 -mx-4 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
         <SubmitButton className="btn btn-primary w-full md:w-auto md:px-8" pending="Saving…">{submitLabel}</SubmitButton>
       </div>
     </form>

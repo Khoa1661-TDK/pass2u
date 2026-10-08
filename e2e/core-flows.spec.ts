@@ -119,7 +119,7 @@ test("sign up, verify, list, chat, reserve, complete", async ({ browser }) => {
 
   // Completed listings leave the market but show on the profile.
   await b.goto(`/market?q=${encodeURIComponent(title)}`);
-  await expect(b.getByText("No listings match yet.")).toBeVisible();
+  await expect(b.getByRole("heading", { name: "Nothing matches those filters" })).toBeVisible();
   await s.goto("/me?tab=completed");
   await expect(s.getByText(title)).toBeVisible();
 

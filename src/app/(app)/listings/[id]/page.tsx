@@ -83,8 +83,9 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         <div className="mt-6 border-t border-line pt-6">
           {mine ? (
             <div className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                <Link href={`/listings/${l.id}/edit`} className="btn btn-secondary">Edit listing</Link>
+              <p className="text-sm font-medium text-ink-3">Your listing</p>
+              <div className="grid grid-cols-2 gap-2 [&>*]:w-full [&_button]:w-full">
+                <Link href={`/listings/${l.id}/edit`} className="btn btn-primary">Edit listing</Link>
                 {l.status !== "available" && l.status !== "removed" && (
                   <form action={setListingStatus.bind(null, l.id, "available")}><SubmitButton className="btn btn-secondary">Mark available</SubmitButton></form>
                 )}
@@ -96,7 +97,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 )}
               </div>
               <form action={deleteListing.bind(null, l.id)}>
-                <SubmitButton className="btn btn-danger btn-sm" pending="Deleting…">Delete listing</SubmitButton>
+                <SubmitButton className="btn btn-ghost btn-sm !px-0 text-danger hover:!bg-transparent hover:underline" pending="Deleting…">Delete listing</SubmitButton>
               </form>
             </div>
           ) : existing ? (
