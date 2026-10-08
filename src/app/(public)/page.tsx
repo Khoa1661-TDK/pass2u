@@ -1,3 +1,5 @@
+import { existsSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
@@ -21,16 +23,29 @@ const CAT_ICONS: Record<string, Icon> = {
   stationery: PencilSimpleLine, sports: Basketball, vehicles: Bicycle, other: Package,
 };
 
+// Optional photos the team drops into public/categories/<value>.jpg, used
+// when a category has no live listing to borrow a cover from.
+const STATIC_CAT = new Set(
+  existsSync(join(process.cwd(), "public/categories"))
+    ? readdirSync(join(process.cwd(), "public/categories")).filter((f) => f.endsWith(".jpg")).map((f) => f.slice(0, -4))
+    : [],
+);
+
 const QUICK = ["Giáo trình", "Quạt", "Áo đồng phục", "Máy tính Casio"];
 
 async function categoryCounts() {
   const rows = await db
-    .select({ category: listings.category, n: sql<number>`count(*)::int` })
+    .select({
+      category: listings.category,
+      n: sql<number>`count(*)::int`,
+      // Cover photo of the newest available listing in the category.
+      cover: sql<string | null>`(array_agg((select url from listing_images li where li.listing_id = ${listings.id} order by li.position limit 1) order by ${listings.createdAt} desc))[1]`,
+    })
     .from(listings)
     .innerJoin(users, eq(users.id, listings.sellerId))
     .where(and(eq(listings.status, "available"), sql`${users.bannedAt} is null`))
     .groupBy(listings.category);
-  return Object.fromEntries(rows.map((r) => [r.category, r.n]));
+  return Object.fromEntries(rows.map((r) => [r.category, r]));
 }
 
 export default async function Landing() {
@@ -93,18 +108,26 @@ export default async function Landing() {
           <ul className="stagger scrollbar-none -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 lg:grid-cols-8">
             {CATEGORIES.map((c, i) => {
               const I = CAT_ICONS[c.value] ?? Package;
-              const n = counts[c.value];
+              const n = counts[c.value]?.n;
+              const img = counts[c.value]?.cover ?? (STATIC_CAT.has(c.value) ? `/categories/${c.value}.jpg` : null);
               return (
                 <li key={c.value} style={{ "--i": i } as React.CSSProperties} className="shrink-0">
                   <Link
                     href={`/market?category=${c.value}`}
-                    className="group flex h-full w-32 flex-col justify-between gap-6 rounded-lg border border-line bg-raised p-3.5 transition-[border-color,transform] duration-200 ease-[var(--ease-out)] active:scale-[0.98] sm:w-auto [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-line-strong"
+                    className="group block w-36 rounded-lg active:scale-[0.98] transition-transform duration-200 ease-[var(--ease-out)] sm:w-auto"
                   >
-                    <I size={26} className="text-ink-2 transition-colors group-hover:text-accent-ink" />
-                    <span>
-                      <span className="block text-sm font-semibold leading-tight">{c.label}</span>
-                      {n ? <span className="mt-0.5 block text-[13px] tabular-nums text-ink-3">{n} available</span> : null}
+                    <span className="relative block aspect-square overflow-hidden rounded-lg bg-sunken ring-1 ring-line">
+                      {img ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={img} alt="" loading="lazy" className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out)] [@media(hover:hover)]:group-hover:scale-[1.05]" />
+                      ) : (
+                        <span className="grid size-full place-items-center">
+                          <I size={32} className="text-ink-3 transition-colors group-hover:text-accent-ink" />
+                        </span>
+                      )}
                     </span>
+                    <span className="mt-2 block px-0.5 text-sm font-semibold leading-tight group-hover:text-accent-ink">{c.label}</span>
+                    {n ? <span className="mt-0.5 block px-0.5 text-[13px] tabular-nums text-ink-3">{n} available</span> : null}
                   </Link>
                 </li>
               );
