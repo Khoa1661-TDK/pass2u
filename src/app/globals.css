@@ -9,6 +9,7 @@
  */
 @theme {
   --font-sans: var(--font-be-vietnam), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
 
   --color-bg: oklch(0.992 0.002 42);
   --color-raised: oklch(0.998 0.001 42);
@@ -275,6 +276,15 @@
       opacity: 0;
       transform: translateY(6px);
     }
+  }
+}
+
+.hero-slant {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 3rem), 0 100%);
+}
+@media (min-width: 768px) {
+  .hero-slant {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7rem), 0 100%);
   }
 }
 

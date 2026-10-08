@@ -44,6 +44,8 @@ const STOCK_CAT: Record<string, string> = {
   other: unsplash("1586495777744-4413f21062fa"),
 };
 
+const HERO_IMG = unsplash("1512820790803-83ca734da794").replace("w=480&h=480", "w=900&h=1125");
+
 const QUICK = ["Giáo trình", "Quạt", "Áo đồng phục", "Máy tính Casio"];
 
 async function categoryCounts() {
@@ -72,27 +74,57 @@ export default async function Landing() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-20 border-b border-line/70 bg-bg/90 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Logo />
-          <nav className="flex items-center gap-1">
-            <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
-            <Link href="/signup" className="btn btn-primary btn-sm">Join</Link>
+      {/* Editorial hero: tinted field, centered wordmark, serif headline,
+          product photo standing on the slanted bottom edge. */}
+      <div className="hero-slant relative bg-accent-soft">
+        <header className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:h-20 sm:px-6">
+          <nav className="hidden gap-7 text-xs font-semibold uppercase tracking-[0.14em] text-ink-2 sm:flex">
+            <a href="#cats" className="transition-colors hover:text-ink">Categories</a>
+            <a href="#fresh" className="transition-colors hover:text-ink">Just listed</a>
+            <a href="#verify" className="transition-colors hover:text-ink">Safety</a>
           </nav>
-        </div>
-      </header>
+          <div className="col-start-1 sm:col-start-2"><Logo /></div>
+          <nav className="flex items-center justify-end gap-5 text-xs font-semibold uppercase tracking-[0.14em]">
+            <Link href="/login" className="text-ink-2 transition-colors hover:text-ink">Sign in</Link>
+            <Link href="/signup" className="rounded-sm bg-ink px-3.5 py-2 text-bg transition-opacity hover:opacity-85">Join</Link>
+          </nav>
+        </header>
+
+        <section className="mx-auto grid max-w-6xl items-end gap-8 px-4 pt-8 sm:px-6 md:grid-cols-[1.05fr_0.95fr] md:pt-6">
+          <div className="pb-6 md:pb-32">
+            <h1 className="font-serif text-[clamp(2.6rem,5.6vw,4.4rem)] font-normal leading-[1.05] tracking-[-0.015em]">
+              <span className="rise block" style={{ animationDelay: "40ms" }}>Pass it on.</span>
+              <span className="rise block" style={{ animationDelay: "140ms" }}>Pick it up.</span>
+            </h1>
+            <p className="rise mt-6 max-w-[36ch] text-lg leading-relaxed text-ink-2" style={{ animationDelay: "220ms" }}>
+              Textbooks, uniforms and dorm gear from FPT students who no longer need them, at student prices.
+            </p>
+            <div className="rise mt-9 flex flex-wrap items-center gap-6" style={{ animationDelay: "300ms" }}>
+              <Link href="/market" className="inline-flex min-h-12 items-center rounded-sm bg-raised px-7 text-xs font-bold uppercase tracking-[0.16em] text-ink shadow-[0_10px_24px_-14px_oklch(0.3_0.05_42/0.5)] transition-[transform,box-shadow] duration-200 ease-[var(--ease-out)] active:scale-[0.97] [@media(hover:hover)]:hover:-translate-y-0.5">
+                Browse listings
+              </Link>
+              <Link href="/signup" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-accent-ink">
+                Create an account
+                <ArrowRight size={16} weight="bold" className="transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5" />
+              </Link>
+            </div>
+          </div>
+          <div className="rise relative mx-auto w-full max-w-[15rem] self-end sm:max-w-xs md:mr-0 md:max-w-md" style={{ animationDelay: "160ms" }}>
+            <div className="aspect-[4/5] overflow-hidden rounded-t-[999px] bg-accent/25">
+              <FallbackImg
+                src={HERO_IMG}
+                className="size-full object-cover"
+                fallback={<span className="grid size-full place-items-center"><BookOpenText size={64} className="text-accent-ink/60" /></span>}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
 
       <main className="flex-1">
-        {/* Hero: search is the product, so it leads. */}
-        <section className="mx-auto max-w-6xl px-4 pb-12 pt-10 sm:px-6 md:pb-16 md:pt-20">
-          <div className="rise max-w-3xl">
-            <p className="text-sm font-semibold text-accent-ink">The marketplace for FPT University students</p>
-            <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.035em]">
-              <span className="rise inline-block" style={{ animationDelay: "40ms" }}>Buy and swap on campus,</span>{" "}<span className="rise inline-block text-ink-3" style={{ animationDelay: "140ms" }}>from students you can trust.</span>
-            </h1>
-          </div>
-
-          <form action="/market" method="get" role="search" className="rise mt-8 max-w-2xl" style={{ animationDelay: "220ms" }}>
+        {/* Search sits on the slant, overlapping the hero. */}
+        <section className="relative z-10 mx-auto -mt-6 max-w-6xl px-4 pb-12 sm:px-6 md:-mt-14 md:pb-16">
+          <form action="/market" method="get" role="search" className="rise max-w-2xl" style={{ animationDelay: "360ms" }}>
             <label htmlFor="hero-q" className="sr-only">Search listings</label>
             <div className="group flex items-center gap-2 rounded-lg border border-line-strong bg-raised p-1.5 pl-4 shadow-[0_10px_30px_-18px_oklch(0.3_0.03_42/0.45)] transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:shadow-[0_0_0_4px_oklch(0.64_0.19_42/0.15)] [@media(hover:hover)]:hover:border-ink-3">
               <MagnifyingGlass size={22} className="shrink-0 text-ink-3" />
