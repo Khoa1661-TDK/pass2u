@@ -1,3 +1,4 @@
+import { seedDemoListings } from "./demo-listings.mts";
 // Runs on every Vercel build: applies pending migrations in ./drizzle,
 // then creates/updates the admin account if ADMIN_EMAIL and ADMIN_PASSWORD are set.
 import postgres from "postgres";
@@ -27,4 +28,5 @@ if (ADMIN_EMAIL && ADMIN_PASSWORD) {
   `;
   console.log(`[migrate] admin ready: ${ADMIN_EMAIL}`);
 }
+if (process.env.SEED_DEMO !== "0") await seedDemoListings(sql);
 await sql.end();
