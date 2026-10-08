@@ -1,0 +1,41 @@
+import Link from "next/link";
+import { requireApproved } from "@/lib/session";
+import { listingsBySeller } from "@/lib/queries";
+import { ListingGrid } from "@/components/listing-card";
+
+export const metadata = { title: "My listings" };
+
+export default async function Me({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const u = await requireApproved();
+  const { tab } = await searchParams;
+  const done = tab === "completed";
+  const items = await listingsBySeller(u.id, done ? ["completed"] : ["available", "reserved"]);
+  return (
+    <div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-[28px] font-bold">My listings</h1>
+          <p className="mt-1 text-ink-3">Tap a listing to edit it or change its status.</p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/me/settings" className="btn btn-secondary btn-sm">Settings</Link>
+          <Link href="/listings/new" className="btn btn-primary btn-sm">Post an item</Link>
+        </div>
+      </div>
+      <nav className="mt-6 flex gap-6 border-b border-line text-sm font-medium" aria-label="Listing status">
+        {[["Active", "/me", !done], ["Completed", "/me?tab=completed", done]].map(([t, href, on]) => (
+          <Link key={String(t)} href={String(href)} aria-current={on ? "page" : undefined} className={`-mb-px border-b-2 pb-3 ${on ? "border-ink text-ink" : "border-transparent text-ink-3 hover:text-ink-2"}`}>
+            {t}
+          </Link>
+        ))}
+      </nav>
+      <div className="mt-7">
+        {items.length ? (
+          <ListingGrid items={items} />
+        ) : (
+          <p className="py-14 text-center text-ink-3">{done ? "Completed exchanges show up here." : "You have no active listings."}</p>
+        )}
+      </div>
+    </div>
+  );
+}

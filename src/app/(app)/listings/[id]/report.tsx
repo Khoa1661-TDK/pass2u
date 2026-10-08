@@ -1,0 +1,24 @@
+"use client";
+
+import { useActionState } from "react";
+import { reportListing } from "@/app/actions/listings";
+import { FormMessage, SubmitButton } from "@/components/ui";
+
+export function ReportForm({ listingId }: { listingId: string }) {
+  const [state, action] = useActionState(reportListing.bind(null, listingId), undefined);
+  return (
+    <details className="mt-6 text-sm">
+      <summary className="cursor-pointer text-ink-3 hover:text-ink-2">Report this listing</summary>
+      {state?.ok ? (
+        <div className="mt-3"><FormMessage state={state} /></div>
+      ) : (
+        <form action={action} className="mt-3 space-y-3">
+          <FormMessage state={state} />
+          <label htmlFor="reason" className="field-label">What&rsquo;s wrong?</label>
+          <textarea id="reason" name="reason" rows={2} maxLength={500} className="input resize-none" placeholder="Prohibited item, scam, wrong category…" />
+          <SubmitButton className="btn btn-secondary btn-sm" pending="Sending…">Send report</SubmitButton>
+        </form>
+      )}
+    </details>
+  );
+}

@@ -1,0 +1,7 @@
+import { purgeExpiredIds } from "@/lib/purge";
+
+export async function GET(req: Request) {
+  if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`)
+    return new Response("Unauthorized", { status: 401 });
+  return Response.json({ deleted: await purgeExpiredIds() });
+}
