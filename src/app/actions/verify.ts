@@ -8,6 +8,7 @@ import { users, idDocuments } from "@/lib/schema";
 import { requireUser } from "@/lib/session";
 import { checkImage } from "@/lib/storage";
 import { CAMPUSES } from "@/lib/constants";
+import { checkCard } from "@/lib/card-check";
 import type { FormState } from "./auth";
 
 const schema = z.object({
@@ -34,10 +35,19 @@ export async function submitVerification(_: FormState, fd: FormData): Promise<Fo
   if (bad) return { error: bad, fields };
 
   const image = Buffer.from(await file.arrayBuffer());
+
+  // Read the card here, where the student can't tamper with the result.
+  const card = await checkCard(image, u.displayName);
+  if (card && !card.ocrLooksFpt && !card.ocrCode)
+    return { error: "This doesn't look like an FPT University student card. Photograph the front of your card, flat and in good light.", fields };
+  if (card?.ocrCode && card.ocrCode !== parsed.data.studentCode)
+    return { error: `Your card shows ${card.ocrCode}, but you entered ${parsed.data.studentCode}. Fix the code or retake the photo.`, fields };
+
+  const ocr = card ?? { ocrCode: null, ocrNameMatch: null, ocrLooksFpt: null, ocrText: null };
   await db
     .insert(idDocuments)
-    .values({ userId: u.id, image, mime: file.type })
-    .onConflictDoUpdate({ target: idDocuments.userId, set: { image, mime: file.type, uploadedAt: new Date(), deleteAfter: null } });
+    .values({ userId: u.id, image, mime: file.type, ...ocr })
+    .onConflictDoUpdate({ target: idDocuments.userId, set: { image, mime: file.type, uploadedAt: new Date(), deleteAfter: null, ...ocr } });
   await db
     .update(users)
     .set({ ...parsed.data, verificationStatus: "pending", rejectionReason: null })

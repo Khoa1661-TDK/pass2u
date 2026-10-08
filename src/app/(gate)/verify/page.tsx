@@ -5,6 +5,8 @@ import { Steps } from "../steps";
 import { VerifyForm } from "./form";
 
 export const metadata = { title: "Verify your student ID" };
+// Reading the card on submit can take a few seconds.
+export const maxDuration = 30;
 
 export default async function Verify() {
   const u = await requireUser();

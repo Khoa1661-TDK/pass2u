@@ -5,6 +5,8 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "e2e",
   timeout: 90_000,
+  // Card OCR is CPU-heavy on one local server; keep parallel load modest.
+  workers: 2,
   use: {
     launchOptions: {
       ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}),

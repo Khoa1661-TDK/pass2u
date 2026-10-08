@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/session";
 import { purgeExpiredIds } from "@/lib/purge";
 import { approveStudent, rejectStudent } from "@/app/actions/admin";
 import { SubmitButton } from "@/components/ui";
+import { RefreshForm } from "@/components/refresh-form";
 import { timeAgo } from "@/lib/time";
 import { ID_RETENTION_DAYS } from "@/lib/constants";
 
@@ -14,7 +15,7 @@ export default async function VerificationQueue() {
   await requireAdmin();
   await purgeExpiredIds();
   const queue = await db
-    .select({ id: users.id, displayName: users.displayName, email: users.email, studentCode: users.studentCode, campus: users.campus, uploadedAt: idDocuments.uploadedAt })
+    .select({ id: users.id, displayName: users.displayName, email: users.email, studentCode: users.studentCode, campus: users.campus, uploadedAt: idDocuments.uploadedAt, ocrCode: idDocuments.ocrCode, ocrNameMatch: idDocuments.ocrNameMatch, ocrLooksFpt: idDocuments.ocrLooksFpt })
     .from(users)
     .leftJoin(idDocuments, eq(idDocuments.userId, users.id))
     .where(eq(users.verificationStatus, "pending"))
@@ -47,17 +48,22 @@ export default async function VerificationQueue() {
                 <dt className="text-ink-3">Email</dt><dd className="break-all">{s.email}</dd>
                 <dt className="text-ink-3">Submitted</dt><dd>{s.uploadedAt ? timeAgo(s.uploadedAt) : "Unknown"}</dd>
               </dl>
+              <ul aria-label="Automatic card checks" className="mt-4 flex flex-wrap gap-1.5">
+                <Check ok={s.ocrCode == null ? null : s.ocrCode === s.studentCode} label={s.ocrCode ? `Card code ${s.ocrCode}` : "Card code unreadable"} />
+                <Check ok={s.ocrNameMatch} label={s.ocrNameMatch ? "Name on card" : s.ocrNameMatch === false ? "Name not found on card" : "Name not checked"} />
+                <Check ok={s.ocrLooksFpt} label={s.ocrLooksFpt ? "FPT card wording" : s.ocrLooksFpt === false ? "No FPT wording" : "Card not checked"} />
+              </ul>
               <div className="mt-5 flex flex-wrap items-start gap-2 md:mt-auto">
-                <form action={approveStudent.bind(null, s.id)}>
+                <RefreshForm action={approveStudent.bind(null, s.id)}>
                   <SubmitButton pending="Approving…">Approve</SubmitButton>
-                </form>
+                </RefreshForm>
                 <details className="group">
                   <summary className="btn btn-danger list-none">Reject…</summary>
-                  <form action={rejectStudent.bind(null, s.id)} className="mt-3 w-[min(360px,80vw)] space-y-2">
+                  <RefreshForm action={rejectStudent.bind(null, s.id)} className="mt-3 w-[min(360px,80vw)] space-y-2">
                     <label htmlFor={`r-${s.id}`} className="field-label">Reason shown to the student</label>
                     <textarea id={`r-${s.id}`} name="reason" rows={2} className="input resize-none" defaultValue="The photo is blurry or the student code doesn't match. Please upload a clearer photo." />
                     <SubmitButton className="btn btn-danger btn-sm" pending="Rejecting…">Confirm rejection</SubmitButton>
-                  </form>
+                  </RefreshForm>
                 </details>
               </div>
             </div>
@@ -66,4 +72,10 @@ export default async function VerificationQueue() {
       </ul>
     </div>
   );
+}
+
+// Green when the check passed, red when it failed, grey when it couldn't run.
+function Check({ ok, label }: { ok: boolean | null; label: string }) {
+  const tone = ok === true ? "bg-ok-soft text-ok" : ok === false ? "bg-danger-soft text-danger" : "bg-sunken text-ink-3";
+  return <li className={`tag ${tone}`}>{label}</li>;
 }

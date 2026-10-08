@@ -34,7 +34,7 @@ async function signUpAndConfirm(browser: Browser, name: string) {
   return page;
 }
 
-async function signUpAndSubmitId(browser: Browser, name: string, code: string) {
+async function signUpAndSubmitId(browser: Browser, name: string, code: string, card: string) {
   const ctx = await browser.newContext({ ...test.info().project.use });
   const page = await ctx.newPage();
   const email = `${name.split(" ")[0].toLowerCase()}.${run}@example.com`;
@@ -52,7 +52,7 @@ async function signUpAndSubmitId(browser: Browser, name: string, code: string) {
 
   await page.goto(await confirmLinkFor(email));
   await page.getByRole("link", { name: "Continue to ID verification" }).click();
-  await page.locator('input[name="idCard"]').setInputFiles(fx("idcard.png"));
+  await page.locator('input[name="idCard"]').setInputFiles(fx(card));
   // Let the card reader finish so it can't overwrite the typed code.
   await expect(page.getByText(/couldn't read the code|from your card/)).toBeVisible({ timeout: 30_000 });
   await page.getByLabel("Student code").fill(code);
@@ -79,15 +79,19 @@ async function adminLogin(browser: Browser) {
 
 async function approve(admin: Page, email: string) {
   await admin.goto("/admin");
-  const row = admin.locator("li", { hasText: email });
+  await admin.waitForLoadState("networkidle");
+  const row = admin.locator("ul > li", { hasText: email }).first();
   await expect(row.getByRole("img")).toBeVisible();
+  // Server-side card checks are shown to the admin.
+  await expect(row.getByLabel("Automatic card checks")).toContainText("Name on card");
+  await expect(row.getByLabel("Automatic card checks")).toContainText("FPT card wording");
   await row.getByRole("button", { name: "Approve" }).click();
-  await expect(admin.locator("li", { hasText: email })).toHaveCount(0);
+  await expect(admin.locator("li", { hasText: email })).toHaveCount(0, { timeout: 20_000 });
 }
 
 test("sign up, verify, list, chat, reserve, complete", async ({ browser }) => {
-  const seller = await signUpAndSubmitId(browser, "Lan Nguyen", "SE180001");
-  const buyer = await signUpAndSubmitId(browser, "Minh Tran", "HE190002");
+  const seller = await signUpAndSubmitId(browser, "Lan Nguyen", "SE180001", "card-lan.png");
+  const buyer = await signUpAndSubmitId(browser, "Minh Tran", "HE190002", "card-minh.png");
 
   // ID photos are not visible to students.
   const sellerId = await seller.page.evaluate(() => fetch("/api/admin/id/00000000-0000-0000-0000-000000000000").then((r) => r.status));
@@ -174,7 +178,7 @@ test("signed-out visitors are sent to sign in", async ({ page }) => {
 test("card reader fills the student code from a photo", async ({ browser }) => {
   test.setTimeout(120_000);
   const page = await signUpAndConfirm(browser, "Ocrtest Lan");
-  await page.locator('input[name="idCard"]').setInputFiles(fx("fpt-card.png"));
+  await page.locator('input[name="idCard"]').setInputFiles(fx("card-ocr.png"));
   await expect(page.getByText("Read SE190123 from your card", { exact: false })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByLabel("Student code")).toHaveValue("SE190123");
 });
@@ -192,4 +196,22 @@ test("scanner opens the camera and captures the framed card", async ({ browser }
   await expect(page.getByAltText("Your ID card preview")).toBeVisible();
   const files = await page.locator('input[name="idCard"]').evaluate((i) => (i as HTMLInputElement).files?.length);
   expect(files).toBe(1);
+});
+
+test("server rejects a card that doesn't match or isn't an FPT card", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const page = await signUpAndConfirm(browser, "Checktest Hoa");
+  await page.locator('input[name="idCard"]').setInputFiles(fx("card-lan.png"));
+  await expect(page.getByText(/from your card|couldn't read/)).toBeVisible({ timeout: 60_000 });
+  await page.getByLabel("Student code").fill("SE111111");
+  await page.getByLabel("Campus").selectOption("Hà Nội");
+  await page.getByRole("button", { name: "Submit for review" }).click();
+  await expect(page.getByText("Your card shows SE180001, but you entered SE111111")).toBeVisible({ timeout: 60_000 });
+
+  await page.locator('input[name="idCard"]').setInputFiles(fx("item.png"));
+  await expect(page.getByText(/from your card|couldn't read/)).toBeVisible({ timeout: 60_000 });
+  await page.getByLabel("Student code").fill("SE111111");
+  await page.getByLabel("Campus").selectOption("Hà Nội");
+  await page.getByRole("button", { name: "Submit for review" }).click();
+  await expect(page.getByText("doesn't look like an FPT University student card")).toBeVisible({ timeout: 60_000 });
 });

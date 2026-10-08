@@ -8,6 +8,7 @@ import {
   customType,
   uniqueIndex,
   index,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
@@ -51,6 +52,11 @@ export const idDocuments = pgTable("id_documents", {
   mime: text("mime").notNull(),
   uploadedAt: timestamp("uploaded_at", { withTimezone: true }).notNull().defaultNow(),
   deleteAfter: timestamp("delete_after", { withTimezone: true }),
+  // Server-side read of the card, shown to admins as checks. Null = unreadable.
+  ocrCode: text("ocr_code"),
+  ocrNameMatch: boolean("ocr_name_match"),
+  ocrLooksFpt: boolean("ocr_looks_fpt"),
+  ocrText: text("ocr_text"),
 });
 
 export const listings = pgTable(
