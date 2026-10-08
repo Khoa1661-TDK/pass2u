@@ -19,15 +19,10 @@ Authorization is enforced on the server in every page and server action (`src/li
 
 1. Import this repo in Vercel.
 2. In the project's **Storage** tab, add **Neon** (sets `DATABASE_URL`) and **Blob** (sets `BLOB_READ_WRITE_TOKEN`).
-3. Add environment variables: `SESSION_SECRET` (`openssl rand -base64 32`), `APP_URL` (your site URL), `CRON_SECRET` (random string), and optionally `RESEND_API_KEY` + `EMAIL_FROM`.
-4. Create tables and the first admin from your machine:
-   ```bash
-   vercel env pull .env.local
-   set -a; . ./.env.local; set +a
-   npx drizzle-kit push
-   ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='...' npm run db:seed
-   ```
-5. Redeploy.
+3. Add environment variables: `SESSION_SECRET` (`openssl rand -base64 32`), `APP_URL` (your site URL), `CRON_SECRET` (random string), `ADMIN_EMAIL` + `ADMIN_PASSWORD` (the admin login), and optionally `RESEND_API_KEY` + `EMAIL_FROM`.
+4. Deploy. Every build runs `scripts/migrate.mts`, which applies migrations in `./drizzle` and creates or updates the admin account.
+
+After changing `src/lib/schema.ts`, run `npx drizzle-kit generate` and commit the new migration.
 
 ## Local development
 
