@@ -42,7 +42,7 @@ export function VerifyForm({ defaults }: { defaults: { studentCode: string; camp
             <img src={preview} alt="Your ID card preview" className="absolute inset-0 size-full object-cover" />
           ) : (
             <span className="flex flex-col items-center gap-2 px-6 text-sm text-ink-2">
-              <CameraIcon width={28} height={28} className="text-ink-3" />
+              <CameraIcon size={28} className="text-ink-3" />
               <span><span className="font-semibold text-accent-ink">Take or choose a photo</span><br />JPG, PNG or WebP</span>
             </span>
           )}

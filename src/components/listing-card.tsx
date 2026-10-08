@@ -12,11 +12,11 @@ export function ListingCard({ l }: { l: ListingCardData }) {
             src={l.cover}
             alt=""
             loading="lazy"
-            className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out)] group-hover:scale-[1.03]"
+            className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out)] [@media(hover:hover)]:group-hover:scale-[1.03]"
           />
         )}
         <div className="absolute left-2 top-2 flex gap-1.5">
-          {l.type === "free" && <span className="tag bg-ok text-white">Free</span>}
+          {l.type === "free" && <span className="tag bg-ok-soft text-ok">Free</span>}
           {l.status === "reserved" && <span className="tag bg-warn-soft text-warn">Reserved</span>}
           {l.status === "completed" && <span className="tag bg-sunken text-ink-2">Done</span>}
         </div>

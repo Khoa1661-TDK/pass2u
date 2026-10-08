@@ -22,7 +22,7 @@ export default async function Profile({ params }: { params: Promise<{ id: string
         <div>
           <h1 className="flex items-center gap-2 text-[26px] font-bold">
             {u.displayName}
-            {u.verificationStatus === "approved" && <CheckBadge width={22} height={22} className="text-accent" aria-label="Verified FPT student" />}
+            {u.verificationStatus === "approved" && <CheckBadge size={22} className="text-accent" aria-label="Verified FPT student" />}
           </h1>
           <p className="text-ink-3">
             {u.verificationStatus === "approved" ? "Verified FPT student" : u.role === "admin" ? "PASS2U admin" : "Student"}

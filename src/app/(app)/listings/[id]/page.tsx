@@ -39,7 +39,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={img.url} alt={i === 0 ? l.title : `${l.title}, photo ${i + 1}`} className="size-full object-cover" />
               {imgs.length > 1 && (
-                <span className="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2 py-0.5 text-xs font-medium tabular-nums text-white">
+                <span className="absolute bottom-3 right-3 rounded-full bg-[oklch(0.2_0.01_50/0.7)] px-2 py-0.5 text-xs font-medium tabular-nums text-white">
                   {i + 1}/{imgs.length}
                 </span>
               )}
@@ -74,7 +74,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           <div className="min-w-0">
             <p className="flex items-center gap-1.5 font-semibold">
               {seller.displayName}
-              {seller.verificationStatus === "approved" && <CheckBadge width={17} height={17} className="text-accent" aria-label="Verified FPT student" />}
+              {seller.verificationStatus === "approved" && <CheckBadge size={17} className="text-accent" aria-label="Verified FPT student" />}
             </p>
             <p className="text-sm text-ink-3">Verified student{seller.campus ? ` · ${seller.campus}` : ""}</p>
           </div>
@@ -96,9 +96,13 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                   <form action={setListingStatus.bind(null, l.id, "completed")}><SubmitButton className="btn btn-secondary">Mark completed</SubmitButton></form>
                 )}
               </div>
-              <form action={deleteListing.bind(null, l.id)}>
-                <SubmitButton className="btn btn-ghost btn-sm !px-0 text-danger hover:!bg-transparent hover:underline" pending="Deleting…">Delete listing</SubmitButton>
-              </form>
+              <details className="text-sm">
+                <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-danger hover:underline">Delete listing</summary>
+                <form action={deleteListing.bind(null, l.id)} className="mt-2 flex flex-wrap items-center gap-3 rounded-md bg-danger-soft p-3">
+                  <span className="text-danger">This removes the listing and its photos for good.</span>
+                  <SubmitButton className="btn btn-sm bg-danger text-white" pending="Deleting…">Delete permanently</SubmitButton>
+                </form>
+              </details>
             </div>
           ) : existing ? (
             <Link href={`/inbox/${existing.id}`} className="btn btn-primary w-full">Open your conversation</Link>

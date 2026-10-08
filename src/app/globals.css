@@ -36,6 +36,32 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+
+/* Dark mode: same hues, lifted for low light (late-night dorm browsing). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: oklch(0.19 0.008 50);
+    --color-raised: oklch(0.23 0.009 50);
+    --color-sunken: oklch(0.255 0.01 50);
+    --color-line: oklch(0.32 0.01 50);
+    --color-line-strong: oklch(0.42 0.012 50);
+    --color-ink: oklch(0.95 0.006 60);
+    --color-ink-2: oklch(0.82 0.008 60);
+    --color-ink-3: oklch(0.7 0.01 60);
+    --color-accent: oklch(0.68 0.18 42);
+    --color-accent-hover: oklch(0.73 0.17 44);
+    --color-accent-ink: oklch(0.78 0.14 48);
+    --color-accent-soft: oklch(0.3 0.06 42);
+    --color-ok: oklch(0.75 0.13 155);
+    --color-ok-soft: oklch(0.3 0.05 155);
+    --color-warn: oklch(0.8 0.12 85);
+    --color-warn-soft: oklch(0.32 0.05 85);
+    --color-danger: oklch(0.72 0.16 25);
+    --color-danger-soft: oklch(0.3 0.06 25);
+    color-scheme: dark;
+  }
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;

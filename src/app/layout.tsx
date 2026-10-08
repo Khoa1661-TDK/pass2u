@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   description: "Buy, swap, and give away secondhand items with verified FPT University students.",
 };
 
-export const viewport: Viewport = { themeColor: "#fbf9f7", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: [{ media: "(prefers-color-scheme: light)", color: "#fbf9f7" }, { media: "(prefers-color-scheme: dark)", color: "#1c1916" }], width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

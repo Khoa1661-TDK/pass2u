@@ -32,7 +32,7 @@ export default async function Market({ searchParams }: { searchParams: Promise<L
         </p>
       </div>
 
-      <div className="mt-4 flex items-center gap-2">
+      <div className="mt-4 flex items-center gap-2 md:hidden">
           <form action="/market" className="relative flex-1 md:hidden">
             <SearchIcon className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3" />
             <label htmlFor="m-q" className="sr-only">Search listings</label>
@@ -84,7 +84,15 @@ export default async function Market({ searchParams }: { searchParams: Promise<L
         </form>
       )}
 
-      <nav aria-label="Filter by type and category" className="scrollbar-none -mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+      <nav aria-label="Filter by type and category" className="scrollbar-none -mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 md:mt-5">
+        <Link
+          href={showFilters ? hrefWith({}) : `${hrefWith({})}${hrefWith({}).includes("?") ? "&" : "?"}focus=filters`}
+          aria-expanded={showFilters}
+          className={`chip hidden md:inline-flex ${showFilters ? "!border-ink !text-ink" : ""}`}
+        >
+          Filters{activeExtra > 0 && <span className="grid size-5 place-items-center rounded-full bg-accent text-[11px] text-white">{activeExtra}</span>}
+        </Link>
+        <span aria-hidden className="mx-1 hidden h-5 w-px shrink-0 bg-line-strong md:block" />
         {[{ value: undefined, label: "All" }, ...TYPES].map((t) => (
           <Link key={t.label} href={hrefWith({ type: t.value })} className="chip" aria-current={f.type === t.value || (!f.type && !t.value)}>
             {t.label}

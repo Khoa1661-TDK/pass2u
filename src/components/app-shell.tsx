@@ -19,10 +19,10 @@ export function AppShell({ user, children }: { user: User; children: React.React
           </form>
           <nav className="ml-auto hidden items-center gap-1 md:flex">
             {user.role === "admin" && (
-              <Link href="/admin" className="btn btn-ghost btn-sm"><ShieldIcon width={18} />Admin</Link>
+              <Link href="/admin" className="btn btn-ghost btn-sm"><ShieldIcon size={18} />Admin</Link>
             )}
-            <Link href="/inbox" className="btn btn-ghost btn-sm"><ChatIcon width={18} />Inbox</Link>
-            <Link href="/listings/new" className="btn btn-primary btn-sm"><PlusIcon width={18} />Post an item</Link>
+            <Link href="/inbox" className="btn btn-ghost btn-sm"><ChatIcon size={18} />Inbox</Link>
+            <Link href="/listings/new" className="btn btn-primary btn-sm"><PlusIcon size={18} />Post an item</Link>
             <details className="relative ml-1">
               <summary className="flex cursor-pointer list-none rounded-full" aria-label="Account menu">
                 <Avatar name={user.displayName} />
