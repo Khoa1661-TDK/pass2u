@@ -292,6 +292,17 @@
   .rise {
     animation: rise 260ms var(--ease-out) both;
   }
+  .scan-line {
+    animation: scan 1.2s ease-in-out infinite;
+  }
+  @keyframes scan {
+    from {
+      left: -33%;
+    }
+    to {
+      left: 100%;
+    }
+  }
   .page-enter {
     animation: fade-in 220ms var(--ease-out) both;
   }

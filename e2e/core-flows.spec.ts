@@ -19,6 +19,21 @@ async function confirmLinkFor(email: string) {
   throw new Error("No confirmation email logged for " + email);
 }
 
+async function signUpAndConfirm(browser: Browser, name: string) {
+  const ctx = await browser.newContext({ ...test.info().project.use, permissions: ["camera"] });
+  const page = await ctx.newPage();
+  const email = `${name.split(" ")[0].toLowerCase()}.${run}@example.com`;
+  await page.goto("/signup");
+  await page.getByLabel("Full name").fill(name);
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("password123");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("heading", { name: "Check your inbox" })).toBeVisible();
+  await page.goto(await confirmLinkFor(email));
+  await page.getByRole("link", { name: "Continue to ID verification" }).click();
+  return page;
+}
+
 async function signUpAndSubmitId(browser: Browser, name: string, code: string) {
   const ctx = await browser.newContext({ ...test.info().project.use });
   const page = await ctx.newPage();
@@ -37,9 +52,11 @@ async function signUpAndSubmitId(browser: Browser, name: string, code: string) {
 
   await page.goto(await confirmLinkFor(email));
   await page.getByRole("link", { name: "Continue to ID verification" }).click();
+  await page.locator('input[name="idCard"]').setInputFiles(fx("idcard.png"));
+  // Let the card reader finish so it can't overwrite the typed code.
+  await expect(page.getByText(/couldn't read the code|from your card/)).toBeVisible({ timeout: 30_000 });
   await page.getByLabel("Student code").fill(code);
   await page.getByLabel("Campus").selectOption("Hà Nội");
-  await page.locator('input[name="idCard"]').setInputFiles(fx("idcard.png"));
   await page.getByRole("button", { name: "Submit for review" }).click();
   await expect(page.getByRole("heading", { name: /checking your ID/ })).toBeVisible();
 
@@ -152,4 +169,27 @@ test("signed-out visitors are sent to sign in", async ({ page }) => {
     await page.goto(p);
     await expect(page).toHaveURL(/\/login/);
   }
+});
+
+test("card reader fills the student code from a photo", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const page = await signUpAndConfirm(browser, "Ocrtest Lan");
+  await page.locator('input[name="idCard"]').setInputFiles(fx("fpt-card.png"));
+  await expect(page.getByText("Read SE190123 from your card", { exact: false })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByLabel("Student code")).toHaveValue("SE190123");
+});
+
+test("scanner opens the camera and captures the framed card", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const page = await signUpAndConfirm(browser, "Scantest Minh");
+  await page.getByRole("button", { name: "Scan card" }).click();
+  const dialog = page.getByRole("dialog", { name: "Scan your student card" });
+  await expect(dialog).toBeVisible();
+  await page.waitForFunction(() => (document.querySelector("video") as HTMLVideoElement)?.videoWidth > 0);
+  if (process.env.SHOT_DIR) await page.screenshot({ path: `${process.env.SHOT_DIR}/scanner.png` });
+  await dialog.getByRole("button", { name: "Capture card" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByAltText("Your ID card preview")).toBeVisible();
+  const files = await page.locator('input[name="idCard"]').evaluate((i) => (i as HTMLInputElement).files?.length);
+  expect(files).toBe(1);
 });
