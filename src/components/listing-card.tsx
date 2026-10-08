@@ -34,8 +34,12 @@ export function ListingCard({ l }: { l: ListingCardData }) {
 
 export function ListingGrid({ items }: { items: ListingCardData[] }) {
   return (
-    <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4">
-      {items.map((l) => <ListingCard key={l.id} l={l} />)}
+    <div className="stagger grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4">
+      {items.map((l, i) => (
+        <div key={l.id} style={{ "--i": i } as React.CSSProperties}>
+          <ListingCard l={l} />
+        </div>
+      ))}
     </div>
   );
 }
