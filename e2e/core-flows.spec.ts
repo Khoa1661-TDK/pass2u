@@ -24,7 +24,7 @@ async function signUpAndSubmitId(browser: Browser, name: string, code: string) {
   const page = await ctx.newPage();
   const email = `${name.split(" ")[0].toLowerCase()}.${run}@example.com`;
   await page.goto("/");
-  await page.getByRole("link", { name: "Join PASS2U" }).first().click();
+  await page.getByRole("link", { name: "Join", exact: true }).click();
   await page.getByLabel("Full name").fill(name);
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("password123");

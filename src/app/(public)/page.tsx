@@ -1,119 +1,181 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { and, eq, sql } from "drizzle-orm";
 import { getUser, gateFor } from "@/lib/session";
+import { db } from "@/lib/db";
+import { listings, users } from "@/lib/schema";
+import { searchListings } from "@/lib/queries";
+import { CATEGORIES } from "@/lib/constants";
 import { Logo } from "@/components/logo";
-import { ArrowRight, IdentificationCard, ChatsCircle, HandArrowDown } from "@phosphor-icons/react/dist/ssr";
+import { ListingGrid } from "@/components/listing-card";
+import {
+  ArrowRight, MagnifyingGlass, BookOpenText, DeviceMobile, Armchair, TShirt, PencilSimpleLine,
+  Basketball, Bicycle, Package, IdentificationCard, ShieldCheck, Trash,
+} from "@phosphor-icons/react/dist/ssr";
+import type { Icon } from "@phosphor-icons/react";
 
-// Placeholder photography until the team supplies real campus shots.
-const HERO_IMG = "https://picsum.photos/seed/pass2u-dorm-desk/960/1200";
-const SIDE_IMG = "https://picsum.photos/seed/pass2u-textbooks/800/600";
+export const dynamic = "force-dynamic";
 
-const steps = [
-  {
-    icon: IdentificationCard,
-    title: "Sign up, then show your card",
-    body: "Any email works. Upload a photo of your physical FPT student card and an admin checks it. The photo is deleted after review.",
-  },
-  {
-    icon: ChatsCircle,
-    title: "Message the seller",
-    body: "Ask about the item, agree on a price or a swap, and reserve it so nobody else grabs it.",
-  },
-  {
-    icon: HandArrowDown,
-    title: "Meet on campus",
-    body: "Hand it over in person at the library or the canteen. Nothing is paid through PASS2U.",
-  },
-];
+const CAT_ICONS: Record<string, Icon> = {
+  textbooks: BookOpenText, electronics: DeviceMobile, dorm: Armchair, clothing: TShirt,
+  stationery: PencilSimpleLine, sports: Basketball, vehicles: Bicycle, other: Package,
+};
+
+const QUICK = ["Giáo trình", "Quạt", "Áo đồng phục", "Máy tính Casio"];
+
+async function categoryCounts() {
+  const rows = await db
+    .select({ category: listings.category, n: sql<number>`count(*)::int` })
+    .from(listings)
+    .innerJoin(users, eq(users.id, listings.sellerId))
+    .where(and(eq(listings.status, "available"), sql`${users.bannedAt} is null`))
+    .groupBy(listings.category);
+  return Object.fromEntries(rows.map((r) => [r.category, r.n]));
+}
 
 export default async function Landing() {
   const u = await getUser();
   if (u) redirect(gateFor(u) ?? (u.role === "admin" ? "/admin" : "/market"));
 
+  const [recent, counts] = await Promise.all([searchListings({}, 12), categoryCounts()]);
+  const avail = recent.filter((l) => l.status === "available").slice(0, 8);
+  // Keep full rows on desktop (4 columns) once there are enough items.
+  const featured = avail.length >= 4 ? avail.slice(0, avail.length - (avail.length % 4)) : avail;
+
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Logo />
-        <nav className="flex items-center gap-1">
-          <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
-          <Link href="/signup" className="btn btn-primary btn-sm">Join PASS2U</Link>
-        </nav>
+      <header className="sticky top-0 z-20 border-b border-line/70 bg-bg/90 backdrop-blur">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+          <Logo />
+          <nav className="flex items-center gap-1">
+            <Link href="/login" className="btn btn-ghost btn-sm">Sign in</Link>
+            <Link href="/signup" className="btn btn-primary btn-sm">Join</Link>
+          </nav>
+        </div>
       </header>
 
       <main className="flex-1">
-        <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-8 sm:px-6 md:grid-cols-[1.1fr_0.9fr] md:items-center md:gap-14 md:pb-24 md:pt-14">
-          <div className="rise">
-            <p className="text-sm font-semibold text-accent-ink">For verified FPT University students</p>
-            <h1 className="mt-4 max-w-[13ch] text-[clamp(2.5rem,6.2vw,4.75rem)] font-bold leading-[1.02] tracking-[-0.035em]">
-              Your seniors&rsquo; stuff, at student prices.
+        {/* Hero: search is the product, so it leads. */}
+        <section className="mx-auto max-w-6xl px-4 pb-12 pt-10 sm:px-6 md:pb-16 md:pt-20">
+          <div className="rise max-w-3xl">
+            <p className="text-sm font-semibold text-accent-ink">The marketplace for FPT University students</p>
+            <h1 className="mt-4 text-[clamp(2.4rem,6vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.035em]">
+              Buy and swap on campus, <span className="text-ink-3">from students you can trust.</span>
             </h1>
-            <p className="mt-6 max-w-[40ch] text-lg leading-relaxed text-ink-2">
-              Buy, swap, or pick up free textbooks, fans and dorm gear from students on your own campus.
-            </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link href="/signup" className="btn btn-primary group !min-h-12 !px-6 text-base">
-                Create your account
-                <ArrowRight size={18} weight="bold" className="transition-transform duration-200 ease-[var(--ease-out)] [@media(hover:hover)]:group-hover:translate-x-0.5" />
-              </Link>
-              <Link href="/login" className="btn btn-ghost !min-h-12 text-base">I already have one</Link>
-            </div>
           </div>
 
-          <div className="rise relative" style={{ animationDelay: "90ms" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={HERO_IMG}
-              alt="A student desk with books and a lamp"
-              width={960}
-              height={1200}
-              className="aspect-[4/5] w-full rounded-lg bg-sunken object-cover md:aspect-[4/4.6]"
-            />
-            <div className="absolute -bottom-6 left-4 right-4 flex items-center justify-between gap-4 rounded-md border border-line bg-raised px-4 py-3 shadow-[0_8px_24px_-12px_oklch(0.3_0.02_42/0.35)] sm:left-auto sm:right-6 sm:w-72">
-              <div>
-                <p className="text-sm font-semibold">Free to a good home</p>
-                <p className="text-sm text-ink-3">Seniors give away what they no longer need</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section aria-labelledby="how" className="border-t border-line bg-sunken/60">
-          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-[0.8fr_1.2fr] md:gap-16 md:py-24">
-            <div>
-              <h2 id="how" className="text-[clamp(1.75rem,3.4vw,2.5rem)] font-bold">How it works</h2>
-              <p className="mt-3 max-w-[34ch] text-ink-2">Three steps from signing up to holding the item.</p>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={SIDE_IMG}
-                alt="A stack of used textbooks"
-                width={800}
-                height={600}
-                loading="lazy"
-                className="mt-8 hidden aspect-[4/3] w-full rounded-lg bg-sunken object-cover md:block"
+          <form action="/market" method="get" role="search" className="rise mt-8 max-w-2xl" style={{ animationDelay: "60ms" }}>
+            <label htmlFor="hero-q" className="sr-only">Search listings</label>
+            <div className="group flex items-center gap-2 rounded-lg border border-line-strong bg-raised p-1.5 pl-4 shadow-[0_10px_30px_-18px_oklch(0.3_0.03_42/0.45)] transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:shadow-[0_0_0_4px_oklch(0.64_0.19_42/0.15)] [@media(hover:hover)]:hover:border-ink-3">
+              <MagnifyingGlass size={22} className="shrink-0 text-ink-3" />
+              <input
+                id="hero-q"
+                name="q"
+                type="search"
+                placeholder="Textbooks, fans, uniforms…"
+                className="min-h-12 w-full min-w-0 bg-transparent text-base focus-visible:outline-none placeholder:text-ink-3"
               />
+              <button className="btn btn-primary !min-h-12 shrink-0 !px-5">Search</button>
             </div>
-            <ol className="space-y-10">
-              {steps.map(({ icon: Icon, title, body }) => (
-                <li key={title} className="grid grid-cols-[auto_1fr] gap-x-5">
-                  <span className="grid size-12 place-items-center rounded-md bg-raised text-accent-ink ring-1 ring-line">
-                    <Icon size={24} />
-                  </span>
-                  <div>
-                    <h3 className="text-lg font-semibold">{title}</h3>
-                    <p className="mt-1.5 max-w-[52ch] leading-relaxed text-ink-2">{body}</p>
-                  </div>
-                </li>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-ink-3">Try</span>
+              {QUICK.map((q) => (
+                <Link key={q} href={`/market?q=${encodeURIComponent(q)}`} className="chip !min-h-8 !px-3 !text-[13px]">{q}</Link>
               ))}
-            </ol>
+            </div>
+            <p className="mt-4 text-[13px] text-ink-3">Sign in with a verified student account to see results.</p>
+          </form>
+        </section>
+
+        {/* Categories */}
+        <section aria-labelledby="cats" className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 md:pb-20">
+          <h2 id="cats" className="text-lg font-semibold">Shop by category</h2>
+          <ul className="stagger scrollbar-none -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 lg:grid-cols-8">
+            {CATEGORIES.map((c, i) => {
+              const I = CAT_ICONS[c.value] ?? Package;
+              const n = counts[c.value];
+              return (
+                <li key={c.value} style={{ "--i": i } as React.CSSProperties} className="shrink-0">
+                  <Link
+                    href={`/market?category=${c.value}`}
+                    className="group flex h-full w-32 flex-col justify-between gap-6 rounded-lg border border-line bg-raised p-3.5 transition-[border-color,transform] duration-200 ease-[var(--ease-out)] active:scale-[0.98] sm:w-auto [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:border-line-strong"
+                  >
+                    <I size={26} className="text-ink-2 transition-colors group-hover:text-accent-ink" />
+                    <span>
+                      <span className="block text-sm font-semibold leading-tight">{c.label}</span>
+                      {n ? <span className="mt-0.5 block text-[13px] tabular-nums text-ink-3">{n} available</span> : null}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {/* Real listings only. Nothing is shown when the market is empty. */}
+        <section aria-labelledby="fresh" className="border-y border-line bg-sunken/50">
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <h2 id="fresh" className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold">Just listed</h2>
+                <p className="mt-1.5 text-ink-2">Posted by verified students. Sign in to message the seller.</p>
+              </div>
+              {featured.length > 0 && (
+                <Link href="/market" className="btn btn-ghost btn-sm group shrink-0">
+                  See all
+                  <ArrowRight size={16} weight="bold" className="transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5" />
+                </Link>
+              )}
+            </div>
+            <div className="mt-8">
+              {featured.length > 0 ? (
+                <ListingGrid items={featured} />
+              ) : (
+                <div className="rounded-lg border border-dashed border-line-strong bg-raised px-6 py-12 text-center">
+                  <Package size={32} className="mx-auto text-ink-3" />
+                  <p className="mt-3 font-semibold">The shelves are empty for now</p>
+                  <p className="mx-auto mt-1 max-w-[40ch] text-ink-2">Be the first to post. Seniors clearing out their dorm get the first buyers.</p>
+                  <Link href="/signup" className="btn btn-primary mt-6">Post an item</Link>
+                </div>
+              )}
+            </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
-          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
-            <h2 className="max-w-[18ch] text-[clamp(1.75rem,3.4vw,2.5rem)] font-bold">
-              Starting at FPT this year? Your first semester just got cheaper.
-            </h2>
-            <Link href="/signup" className="btn btn-primary !min-h-12 !px-6 text-base">Join PASS2U</Link>
+        {/* Verification, kept short */}
+        <section aria-labelledby="verify" className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[0.9fr_1.1fr] md:gap-16 md:py-20">
+          <div>
+            <h2 id="verify" className="text-[clamp(1.5rem,3vw,2.25rem)] font-bold">Students only, checked by hand</h2>
+            <p className="mt-3 max-w-[42ch] leading-relaxed text-ink-2">
+              Every account shows a physical FPT student card before it can buy or sell. No outsiders, no resellers.
+            </p>
+          </div>
+          <ol className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
+            {[
+              { I: IdentificationCard, t: "Upload your card", b: "A clear photo of your student ID." },
+              { I: ShieldCheck, t: "An admin approves", b: "A person checks it, not a bot." },
+              { I: Trash, t: "Photo deleted", b: "Removed within 30 days of review." },
+            ].map(({ I, t, b }) => (
+              <li key={t} className="bg-raised p-5">
+                <I size={24} className="text-accent-ink" />
+                <h3 className="mt-4 font-semibold">{t}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-ink-2">{b}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* Compact CTA */}
+        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
+          <div className="flex flex-col items-start justify-between gap-5 rounded-lg bg-ink px-6 py-7 text-bg sm:flex-row sm:items-center sm:px-8">
+            <p className="max-w-[34ch] text-xl font-semibold leading-snug">Clearing out your dorm, or just moved in? Join in two minutes.</p>
+            <div className="flex shrink-0 gap-2">
+              <Link href="/signup" className="btn btn-primary group">
+                Create account
+                <ArrowRight size={16} weight="bold" className="transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5" />
+              </Link>
+              <Link href="/login" className="btn text-bg/80 [@media(hover:hover)]:hover:text-bg">Sign in</Link>
+            </div>
           </div>
         </section>
       </main>
