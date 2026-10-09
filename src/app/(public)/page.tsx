@@ -44,7 +44,9 @@ const STOCK_CAT: Record<string, string> = {
   other: unsplash("1586495777744-4413f21062fa"),
 };
 
-const HERO_IMG = unsplash("1512820790803-83ca734da794").replace("w=480&h=480", "w=900&h=1125");
+// Deliberately not the textbooks stock photo: the hero and the category grid
+// sit on the same screen, and repeating one photo three times reads as filler.
+const HERO_IMG = unsplash("1673878034060-2d97a101563a").replace("w=480&h=480", "w=900&h=1125");
 
 const QUICK = ["Giáo trình", "Quạt", "Áo đồng phục", "Máy tính Casio"];
 
@@ -126,7 +128,7 @@ export default async function Landing() {
         <section className="relative z-10 mx-auto -mt-6 max-w-6xl px-4 pb-12 sm:px-6 md:-mt-14 md:pb-16">
           <form action="/market" method="get" role="search" className="rise max-w-2xl" style={{ animationDelay: "360ms" }}>
             <label htmlFor="hero-q" className="sr-only">Search listings</label>
-            <div className="group flex items-center gap-2 rounded-sm border border-line-strong bg-raised p-1.5 pl-4 shadow-[0_10px_30px_-18px_oklch(0.3_0.03_42/0.45)] transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:shadow-[0_0_0_4px_oklch(0.64_0.19_42/0.15)] [@media(hover:hover)]:hover:border-ink-3">
+            <div className="group flex items-center gap-2 rounded-sm border border-line-strong bg-raised p-1.5 pl-4 shadow-[0_10px_30px_-18px_oklch(0.3_0.03_42/0.45)] transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:shadow-[0_0_0_4px_color-mix(in_oklch,var(--color-accent)_15%,transparent)] [@media(hover:hover)]:hover:border-ink-3">
               <MagnifyingGlass size={22} className="shrink-0 text-ink-3" />
               <input
                 id="hero-q"
@@ -140,7 +142,7 @@ export default async function Landing() {
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
               <span className="text-ink-3">Try</span>
               {QUICK.map((q) => (
-                <Link key={q} href={`/market?q=${encodeURIComponent(q)}`} className="chip !min-h-8 !px-3 !text-[13px]">{q}</Link>
+                <Link key={q} href={`/market?q=${encodeURIComponent(q)}`} className="chip !min-h-9 !px-3 !text-[13px]">{q}</Link>
               ))}
             </div>
             <p className="mt-4 text-[13px] text-ink-3">Sign in with a verified student account to see results.</p>

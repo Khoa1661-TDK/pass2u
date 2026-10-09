@@ -11,7 +11,7 @@ export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <span
       aria-hidden
-      className="inline-grid shrink-0 place-items-center rounded-full font-semibold text-ink"
+      className="inline-grid shrink-0 place-items-center rounded-full font-semibold text-on-avatar"
       style={{ width: size, height: size, background: tone, fontSize: size * 0.38 }}
     >
       {initials}

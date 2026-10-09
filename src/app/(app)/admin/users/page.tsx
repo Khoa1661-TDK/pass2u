@@ -43,7 +43,7 @@ export default async function Students({ searchParams }: { searchParams: Promise
                 <td className="py-3 pr-4 font-mono">{u.studentCode ?? "None"}</td>
                 <td className="py-3 pr-4 text-ink-2">{u.email}{!u.emailVerifiedAt && <span className="text-ink-3"> (unconfirmed)</span>}</td>
                 <td className="py-3 pr-4">
-                  {u.bannedAt ? <span className="tag bg-danger text-white">Suspended</span> : <span className={`tag ${statusTag[u.verificationStatus]}`}>{u.verificationStatus}</span>}
+                  {u.bannedAt ? <span className="tag bg-danger text-on-danger">Suspended</span> : <span className={`tag ${statusTag[u.verificationStatus]}`}>{u.verificationStatus}</span>}
                 </td>
                 <td className="py-3 text-right">
                   {u.id !== me.id && u.role !== "admin" && (

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireApproved } from "@/lib/session";
-import { searchListings, type ListingFilters } from "@/lib/queries";
+import { searchListings, SEARCH_LIMIT, type ListingFilters } from "@/lib/queries";
 import { CATEGORIES, CONDITIONS, TYPES } from "@/lib/constants";
 import { ListingGrid } from "@/components/listing-card";
 import { SearchIcon } from "@/components/icons";
@@ -28,7 +28,7 @@ export default async function Market({ searchParams }: { searchParams: Promise<L
           {f.q ? <>Results for &ldquo;{f.q}&rdquo;</> : filtered ? "Filtered listings" : "Browse"}
         </h1>
         <p className="shrink-0 text-sm tabular-nums text-ink-3">
-          {items.length === 0 ? "No matches" : `${items.length}${items.length === 48 ? "+" : ""} item${items.length === 1 ? "" : "s"}`}
+          {items.length === 0 ? "No matches" : `${items.length}${items.length === SEARCH_LIMIT ? "+" : ""} item${items.length === 1 ? "" : "s"}`}
         </p>
       </div>
 
@@ -45,7 +45,7 @@ export default async function Market({ searchParams }: { searchParams: Promise<L
             aria-expanded={showFilters}
             className={`chip !min-h-11 md:!min-h-9 ${showFilters ? "!border-ink !text-ink" : ""}`}
           >
-            Filters{activeExtra > 0 && <span className="grid size-5 place-items-center rounded-full bg-accent text-[11px] text-white">{activeExtra}</span>}
+            Filters{activeExtra > 0 && <span className="grid size-5 place-items-center rounded-full bg-accent-fill text-[11px] text-on-accent">{activeExtra}</span>}
           </Link>
           {filtered && <Link href="/market" className="btn btn-ghost btn-sm hidden md:inline-flex">Clear all</Link>}
       </div>
@@ -90,7 +90,7 @@ export default async function Market({ searchParams }: { searchParams: Promise<L
           aria-expanded={showFilters}
           className={`chip hidden md:inline-flex ${showFilters ? "!border-ink !text-ink" : ""}`}
         >
-          Filters{activeExtra > 0 && <span className="grid size-5 place-items-center rounded-full bg-accent text-[11px] text-white">{activeExtra}</span>}
+          Filters{activeExtra > 0 && <span className="grid size-5 place-items-center rounded-full bg-accent-fill text-[11px] text-on-accent">{activeExtra}</span>}
         </Link>
         <span aria-hidden className="mx-1 hidden h-5 w-px shrink-0 bg-line-strong md:block" />
         {[{ value: undefined, label: "All" }, ...TYPES].map((t) => (

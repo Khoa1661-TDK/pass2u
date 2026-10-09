@@ -12,6 +12,18 @@ import { SubmitButton } from "@/components/ui";
 import { Composer } from "./composer";
 import { ScrollToEnd } from "./scroll";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/.test(id)) return {};
+  const [row] = await db
+    .select({ title: listings.title })
+    .from(conversations)
+    .innerJoin(listings, eq(listings.id, conversations.listingId))
+    .where(eq(conversations.id, id));
+  if (!row) return {};
+  return { title: row.title };
+}
+
 export default async function Thread({ params }: { params: Promise<{ id: string }> }) {
   const me = await requireApproved();
   const { id } = await params;
@@ -94,7 +106,7 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
             <li key={m.id} className={`flex ${mine ? "justify-end" : "justify-start"} ${gap ? "mt-2" : ""}`}>
               <p
                 title={m.createdAt.toLocaleString("vi-VN")}
-                className={`max-w-[80%] whitespace-pre-line rounded-2xl px-3.5 py-2 text-[15px] leading-snug ${mine ? "rounded-br-md bg-accent text-white" : "rounded-bl-md bg-sunken text-ink"}`}
+                className={`max-w-[80%] whitespace-pre-line rounded-2xl px-3.5 py-2 text-[15px] leading-snug ${mine ? "rounded-br-md bg-accent-fill text-on-accent" : "rounded-bl-md bg-sunken text-ink"}`}
               >
                 {m.body}
               </p>

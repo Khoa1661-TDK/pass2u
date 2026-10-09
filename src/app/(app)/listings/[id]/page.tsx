@@ -13,6 +13,14 @@ import { SubmitButton } from "@/components/ui";
 import { ReportForm } from "./report";
 import { timeAgo } from "@/lib/time";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/.test(id)) return {};
+  const [row] = await db.select({ title: listings.title, description: listings.description }).from(listings).where(eq(listings.id, id));
+  if (!row) return {};
+  return { title: row.title, description: row.description.slice(0, 155) };
+}
+
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const me = await requireApproved();
   const { id } = await params;
@@ -39,7 +47,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={img.url} alt={i === 0 ? l.title : `${l.title}, photo ${i + 1}`} className="size-full object-cover" />
               {imgs.length > 1 && (
-                <span className="absolute bottom-3 right-3 rounded-full bg-[oklch(0.2_0.01_50/0.7)] px-2 py-0.5 text-xs font-medium tabular-nums text-white">
+                <span className="absolute bottom-3 right-3 rounded-full bg-scrim px-2 py-0.5 text-xs font-medium tabular-nums text-white">
                   {i + 1}/{imgs.length}
                 </span>
               )}
@@ -100,7 +108,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 <summary className="inline-flex min-h-11 cursor-pointer list-none items-center text-danger hover:underline">Delete listing</summary>
                 <form action={deleteListing.bind(null, l.id)} className="mt-2 flex flex-wrap items-center gap-3 rounded-md bg-danger-soft p-3">
                   <span className="text-danger">This removes the listing and its photos for good.</span>
-                  <SubmitButton className="btn btn-sm bg-danger text-white" pending="Deleting…">Delete permanently</SubmitButton>
+                  <SubmitButton className="btn btn-sm bg-danger text-on-danger" pending="Deleting…">Delete permanently</SubmitButton>
                 </form>
               </details>
             </div>

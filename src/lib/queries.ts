@@ -39,7 +39,9 @@ export type ListingCardData = {
   cover: string | null;
 };
 
-export async function searchListings(f: ListingFilters, limit = 48) {
+export const SEARCH_LIMIT = 48;
+
+export async function searchListings(f: ListingFilters, limit = SEARCH_LIMIT) {
   const where: SQL[] = [inArray(listings.status, ["available", "reserved"])];
   if (f.q?.trim()) {
     const term = `%${f.q.trim().replace(/[%_]/g, "\\$&")}%`;

@@ -24,6 +24,16 @@
   --color-accent-hover: oklch(0.58 0.19 40);
   --color-accent-ink: oklch(0.47 0.15 40);
   --color-accent-soft: oklch(0.95 0.035 50);
+  /* Fill + text pair for accent-colored surfaces that carry text (buttons,
+     badges, chat bubbles). Kept separate from --color-accent so borders and
+     text accents stay at brand brightness while fills stay AA-legible. */
+  --color-accent-fill: oklch(0.55 0.19 40);
+  --color-accent-fill-hover: oklch(0.5 0.19 38);
+  --color-on-accent: oklch(0.99 0.005 60);
+  --color-on-danger: oklch(0.99 0.005 60);
+  --color-on-avatar: oklch(0.28 0.02 60);
+  --color-scrim: oklch(0.2 0.01 50 / 0.72);
+  --color-scrim-strong: oklch(0.2 0.01 50 / 0.9);
 
   --color-ok: oklch(0.5 0.12 155);
   --color-ok-soft: oklch(0.95 0.04 155);
@@ -55,6 +65,10 @@
     --color-accent-hover: oklch(0.73 0.17 44);
     --color-accent-ink: oklch(0.78 0.14 48);
     --color-accent-soft: oklch(0.3 0.06 42);
+    --color-accent-fill: oklch(0.68 0.18 42);
+    --color-accent-fill-hover: oklch(0.73 0.17 44);
+    --color-on-accent: oklch(0.18 0.02 42);
+    --color-on-danger: oklch(0.18 0.02 42);
     --color-ok: oklch(0.75 0.13 155);
     --color-ok-soft: oklch(0.3 0.05 155);
     --color-warn: oklch(0.8 0.12 85);
@@ -120,11 +134,11 @@
     cursor: not-allowed;
   }
   .btn-primary {
-    background: var(--color-accent);
-    color: oklch(0.99 0.005 60);
+    background: var(--color-accent-fill);
+    color: var(--color-on-accent);
   }
   .btn-primary:hover:not(:disabled) {
-    background: var(--color-accent-hover);
+    background: var(--color-accent-fill-hover);
   }
   .btn-secondary {
     background: var(--color-raised);
@@ -143,7 +157,7 @@
   }
   .btn-danger {
     color: var(--color-danger);
-    border: 1px solid oklch(0.85 0.06 25);
+    border: 1px solid color-mix(in oklch, var(--color-danger) 35%, var(--color-line));
     background: var(--color-raised);
   }
   .btn-danger:hover:not(:disabled) {
@@ -177,8 +191,8 @@
     cursor: pointer;
   }
   .btn-editorial-accent {
-    background: var(--color-accent);
-    color: oklch(0.99 0.005 60);
+    background: var(--color-accent-fill);
+    color: var(--color-on-accent);
   }
   @media (hover: hover) {
     .btn-editorial:hover {
@@ -186,7 +200,7 @@
       box-shadow: 0 14px 28px -14px oklch(0.3 0.05 42 / 0.55);
     }
     .btn-editorial-accent:hover {
-      background: var(--color-accent-hover);
+      background: var(--color-accent-fill-hover);
     }
   }
   .btn-editorial:active {
@@ -224,7 +238,7 @@
   .input:focus {
     outline: none;
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 3px oklch(0.64 0.19 42 / 0.18);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-accent) 18%, transparent);
   }
   .input[aria-invalid="true"] {
     border-color: var(--color-danger);
@@ -235,6 +249,11 @@
     background-repeat: no-repeat;
     background-position: right 0.875rem center;
     padding-right: 2.25rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    select.input {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a89f96' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    }
   }
 
   .chip {

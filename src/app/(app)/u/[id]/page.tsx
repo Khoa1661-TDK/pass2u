@@ -8,6 +8,14 @@ import { ListingGrid } from "@/components/listing-card";
 import { Avatar } from "@/components/avatar";
 import { CheckBadge } from "@/components/icons";
 
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!/^[0-9a-f-]{36}$/.test(id)) return {};
+  const [u] = await db.select({ displayName: users.displayName, bio: users.bio }).from(users).where(eq(users.id, id));
+  if (!u) return {};
+  return { title: u.displayName, description: u.bio?.slice(0, 155) ?? undefined };
+}
+
 export default async function Profile({ params }: { params: Promise<{ id: string }> }) {
   await requireApproved();
   const { id } = await params;

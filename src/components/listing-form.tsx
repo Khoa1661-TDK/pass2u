@@ -176,7 +176,7 @@ function Thumb({ url, onRemove }: { url: string; onRemove: () => void }) {
         type="button"
         onClick={onRemove}
         aria-label="Remove photo"
-        className="absolute right-1 top-1 grid size-7 place-items-center rounded-full bg-[oklch(0.2_0.01_50/0.72)] text-white transition-colors hover:bg-[oklch(0.2_0.01_50/0.9)]"
+        className="absolute right-1 top-1 grid size-7 place-items-center rounded-full bg-scrim text-white transition-colors hover:bg-scrim-strong"
       >
         <XIcon size={14} />
       </button>
