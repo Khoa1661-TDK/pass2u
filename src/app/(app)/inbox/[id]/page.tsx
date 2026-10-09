@@ -57,7 +57,7 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
     <div className="mx-auto flex max-w-2xl flex-col md:min-h-[calc(100dvh-8rem)]">
       <AutoRefresh every={4000} />
       <div className="flex items-center gap-3 border-b border-line pb-4">
-        <Link href="/inbox" className="btn btn-ghost btn-sm -ml-2 !px-2" aria-label="Back to inbox"><ArrowLeft /></Link>
+        <Link href="/inbox" className="btn btn-ghost btn-sm -ml-2 !px-2" aria-label="Quay lại tin nhắn"><ArrowLeft /></Link>
         <Link href={`/listings/${l.id}`} className="flex min-w-0 flex-1 items-center gap-3">
           <div className="size-11 shrink-0 overflow-hidden rounded-md bg-sunken">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -70,35 +70,35 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
         </Link>
       </div>
 
-      <section aria-label="Reservation" className="flex flex-wrap items-center gap-2 border-b border-line py-3 text-sm">
+      <section aria-label="Giữ món" className="flex flex-wrap items-center gap-2 border-b border-line py-3 text-sm">
         <ReservationSummary status={live?.status ?? resv?.status} listingStatus={l.status} iAmBuyer={iAmBuyer} />
         <div className="ml-auto flex flex-wrap gap-2">
           {iAmBuyer && !live && l.status === "available" && (
-            <form action={step("request")}><SubmitButton className="btn btn-primary btn-sm">Request to reserve</SubmitButton></form>
+            <form action={step("request")}><SubmitButton className="btn btn-primary btn-sm">Xin giữ món</SubmitButton></form>
           )}
           {!iAmBuyer && live?.status === "requested" && (
             <>
-              <form action={step("accept")}><SubmitButton className="btn btn-primary btn-sm">Accept</SubmitButton></form>
-              <form action={step("decline")}><SubmitButton className="btn btn-secondary btn-sm">Decline</SubmitButton></form>
+              <form action={step("accept")}><SubmitButton className="btn btn-primary btn-sm">Chấp nhận</SubmitButton></form>
+              <form action={step("decline")}><SubmitButton className="btn btn-secondary btn-sm">Từ chối</SubmitButton></form>
             </>
           )}
           {!iAmBuyer && live?.status === "accepted" && (
-            <form action={step("complete")}><SubmitButton className="btn btn-primary btn-sm">Mark as completed</SubmitButton></form>
+            <form action={step("complete")}><SubmitButton className="btn btn-primary btn-sm">Đánh dấu đã bán xong</SubmitButton></form>
           )}
           {live && (
-            <form action={step("cancel")}><SubmitButton className="btn btn-ghost btn-sm text-danger">Cancel reservation</SubmitButton></form>
+            <form action={step("cancel")}><SubmitButton className="btn btn-ghost btn-sm text-danger">Hủy giữ món</SubmitButton></form>
           )}
         </div>
       </section>
 
-      <ol className="flex flex-1 flex-col gap-1.5 py-5" aria-label="Messages">
-        {msgs.length === 0 && <li className="py-10 text-center text-sm text-ink-3">Say hi and agree on a time and place to meet.</li>}
+      <ol className="flex flex-1 flex-col gap-1.5 py-5" aria-label="Tin nhắn">
+        {msgs.length === 0 && <li className="py-10 text-center text-sm text-ink-3">Chào hỏi và thống nhất thời gian, địa điểm gặp nhau.</li>}
         {msgs.map((m, i) => {
           const mine = m.senderId === me.id;
           if (m.kind === "event")
             return (
               <li key={m.id} className="my-2 text-center text-xs text-ink-3">
-                <span className="font-medium text-ink-2">{mine ? "You" : other.displayName}</span> {m.body} · {m.createdAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
+                <span className="font-medium text-ink-2">{mine ? "Bạn" : other.displayName}</span> {m.body} · {m.createdAt.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}
               </li>
             );
           const gap = i > 0 && msgs[i - 1].senderId !== m.senderId;
@@ -118,7 +118,7 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
 
       <div className="sticky bottom-16 -mx-4 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur md:bottom-0 md:mx-0 md:px-0">
         <Composer conversationId={id} />
-        <p className="mt-2 text-xs text-ink-3">Meet in a public spot on campus. Never send money before you see the item.</p>
+        <p className="mt-2 text-xs text-ink-3">Hãy gặp nhau ở nơi công cộng trong trường. Đừng chuyển tiền trước khi tận tay xem món.</p>
       </div>
     </div>
   );
@@ -126,10 +126,10 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
 
 function ReservationSummary({ status, listingStatus, iAmBuyer }: { status?: string; listingStatus: string; iAmBuyer: boolean }) {
   if (status === "requested")
-    return <span className="tag bg-warn-soft text-warn">{iAmBuyer ? "Waiting for the seller to accept" : "Wants to reserve this item"}</span>;
-  if (status === "accepted") return <span className="tag bg-ok-soft text-ok">Reserved for {iAmBuyer ? "you" : "this buyer"}</span>;
-  if (status === "completed") return <span className="tag bg-sunken text-ink-2">Exchange completed</span>;
-  if (listingStatus === "reserved") return <span className="tag bg-sunken text-ink-2">Reserved by someone else</span>;
-  if (listingStatus === "completed" || listingStatus === "removed") return <span className="tag bg-sunken text-ink-2">No longer available</span>;
-  return <span className="text-ink-3">{iAmBuyer ? "Agree on details, then reserve." : "No reservation yet."}</span>;
+    return <span className="tag bg-warn-soft text-warn">{iAmBuyer ? "Đang chờ người bán chấp nhận" : "Muốn giữ món này"}</span>;
+  if (status === "accepted") return <span className="tag bg-ok-soft text-ok">Đã giữ cho {iAmBuyer ? "bạn" : "người mua này"}</span>;
+  if (status === "completed") return <span className="tag bg-sunken text-ink-2">Giao dịch đã hoàn tất</span>;
+  if (listingStatus === "reserved") return <span className="tag bg-sunken text-ink-2">Người khác đã giữ</span>;
+  if (listingStatus === "completed" || listingStatus === "removed") return <span className="tag bg-sunken text-ink-2">Không còn nữa</span>;
+  return <span className="text-ink-3">{iAmBuyer ? "Thống nhất chi tiết, rồi giữ món." : "Chưa có yêu cầu giữ."}</span>;
 }

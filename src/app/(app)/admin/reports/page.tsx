@@ -18,20 +18,20 @@ export default async function Reports() {
     .innerJoin(users, eq(users.id, reports.reporterId))
     .where(eq(reports.status, "open"))
     .orderBy(desc(reports.createdAt));
-  if (!rows.length) return <p className="py-14 text-center text-ink-3">No open reports.</p>;
+  if (!rows.length) return <p className="py-14 text-center text-ink-3">Chưa có báo cáo nào đang mở.</p>;
   return (
     <ul className="divide-y divide-line border-y border-line">
       {rows.map((r) => (
         <li key={r.id} className="flex flex-col gap-3 py-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <Link href={`/listings/${r.listingId}`} className="font-semibold hover:underline">{r.title}</Link>
-            {r.listingStatus === "removed" && <span className="tag ml-2 bg-danger-soft text-danger">Removed</span>}
+            {r.listingStatus === "removed" && <span className="tag ml-2 bg-danger-soft text-danger">Đã gỡ</span>}
             <p className="mt-1 text-ink-2">&ldquo;{r.reason}&rdquo;</p>
-            <p className="mt-1 text-sm text-ink-3">Reported by {r.reporter}, {timeAgo(r.createdAt)}</p>
+            <p className="mt-1 text-sm text-ink-3">Báo cáo bởi {r.reporter}, {timeAgo(r.createdAt)}</p>
           </div>
           <div className="flex shrink-0 gap-2">
-            <form action={removeListing.bind(null, r.listingId, r.id)}><SubmitButton className="btn btn-danger btn-sm">Remove listing</SubmitButton></form>
-            <form action={dismissReport.bind(null, r.id)}><SubmitButton className="btn btn-secondary btn-sm">Dismiss</SubmitButton></form>
+            <form action={removeListing.bind(null, r.listingId, r.id)}><SubmitButton className="btn btn-danger btn-sm">Gỡ tin đăng</SubmitButton></form>
+            <form action={dismissReport.bind(null, r.id)}><SubmitButton className="btn btn-secondary btn-sm">Bỏ qua</SubmitButton></form>
           </div>
         </li>
       ))}

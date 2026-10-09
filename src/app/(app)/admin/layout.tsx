@@ -5,7 +5,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requireAdmin();
   return (
     <div>
-      <h1 className="text-[28px] font-bold">Admin</h1>
+      <h1 className="text-[28px] font-bold">Quản trị</h1>
       <AdminTabs />
       <div className="mt-6">{children}</div>
     </div>

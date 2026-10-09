@@ -7,7 +7,7 @@ export default function GateLayout({ children }: { children: React.ReactNode }) 
       <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <Logo />
         <form action={logout}>
-          <button className="btn btn-ghost btn-sm">Sign out</button>
+          <button className="btn btn-ghost btn-sm">Đăng xuất</button>
         </form>
       </header>
       <main className="flex flex-1 justify-center px-4 pb-16 pt-8 sm:pt-14">

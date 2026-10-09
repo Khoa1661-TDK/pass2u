@@ -10,8 +10,8 @@ const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export function checkImage(f: File) {
-  if (!ALLOWED.includes(f.type)) return "Images must be JPG, PNG or WebP.";
-  if (f.size > MAX_IMAGE_BYTES) return "Each image must be under 5 MB.";
+  if (!ALLOWED.includes(f.type)) return "Ảnh phải ở định dạng JPG, PNG hoặc WebP.";
+  if (f.size > MAX_IMAGE_BYTES) return "Mỗi ảnh phải nhỏ hơn 5 MB.";
   return null;
 }
 

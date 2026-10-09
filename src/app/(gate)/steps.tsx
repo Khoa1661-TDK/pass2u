@@ -1,8 +1,8 @@
-const steps = ["Account", "Email", "Student ID", "Approved"];
+const steps = ["Tài khoản", "Email", "Thẻ sinh viên", "Đã duyệt"];
 
 export function Steps({ current }: { current: number }) {
   return (
-    <ol className="mb-8 flex items-center gap-2 text-xs font-medium text-ink-3" aria-label="Sign-up progress">
+    <ol className="mb-8 flex items-center gap-2 text-xs font-medium text-ink-3" aria-label="Tiến trình đăng ký">
       {steps.map((s, i) => (
         <li key={s} className="flex flex-1 flex-col gap-2" aria-current={i === current ? "step" : undefined}>
           <span className={`h-1 rounded-full ${i < current ? "bg-accent" : i === current ? "bg-accent/45" : "bg-line"}`} />

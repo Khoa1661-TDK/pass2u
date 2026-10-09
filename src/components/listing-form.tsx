@@ -52,10 +52,10 @@ export function ListingForm({
 
       <section aria-labelledby="photos-h">
         <div className="flex items-baseline justify-between">
-          <h2 id="photos-h" className="field-label !mb-0">Photos</h2>
+          <h2 id="photos-h" className="field-label !mb-0">Ảnh</h2>
           <span className="text-sm tabular-nums text-ink-3">{count}/{MAX}</span>
         </div>
-        <p className="field-hint !mt-1">The first photo is the cover. Natural light helps.</p>
+        <p className="field-hint !mt-1">Ảnh đầu tiên là ảnh bìa. Nên chụp dưới ánh sáng tự nhiên.</p>
         <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {kept.map((k) => (
             <Thumb key={k.id} url={k.url} onRemove={() => setKept((x) => x.filter((y) => y.id !== k.id))} />
@@ -72,7 +72,7 @@ export function ListingForm({
               >
                 <span className="flex flex-col items-center gap-1 text-xs font-medium">
                   <CameraIcon />
-                  Add
+                  Thêm
                 </span>
               </button>
             </li>
@@ -84,7 +84,7 @@ export function ListingForm({
           accept="image/jpeg,image/png,image/webp"
           multiple
           className="sr-only"
-          aria-label="Add photos"
+          aria-label="Thêm ảnh"
           onChange={(e) => {
             const picked = Array.from(e.target.files ?? []).slice(0, MAX - count);
             setFiles((x) => [...x, ...picked.map((file) => ({ file, url: URL.createObjectURL(file) }))]);
@@ -94,12 +94,12 @@ export function ListingForm({
       </section>
 
       <div>
-        <label htmlFor="title" className="field-label">Title</label>
-        <input id="title" name="title" maxLength={80} required className="input" defaultValue={v.title} placeholder="e.g. Giáo trình Toán rời rạc, 2nd edition" />
+        <label htmlFor="title" className="field-label">Tiêu đề</label>
+        <input id="title" name="title" maxLength={80} required className="input" defaultValue={v.title} placeholder="VD: Giáo trình Calculus 2, còn mới" />
       </div>
 
       <fieldset>
-        <legend className="field-label">What do you want to do?</legend>
+        <legend className="field-label">Bạn muốn làm gì?</legend>
         <div className="grid grid-cols-3 gap-2">
           {TYPES.map((t) => (
             <label
@@ -107,7 +107,7 @@ export function ListingForm({
               className="flex min-h-11 cursor-pointer items-center justify-center rounded-md border border-line-strong text-sm font-medium text-ink-2 transition-colors has-[:checked]:border-accent has-[:checked]:bg-accent-soft has-[:checked]:text-accent-ink has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent"
             >
               <input type="radio" name="type" value={t.value} className="sr-only" checked={type === t.value} onChange={() => setType(t.value)} />
-              {t.value === "sell" ? "Sell" : t.value === "exchange" ? "Swap" : "Give away"}
+              {t.value === "sell" ? "Bán" : t.value === "exchange" ? "Trao đổi" : "Tặng miễn phí"}
             </label>
           ))}
         </div>
@@ -115,7 +115,7 @@ export function ListingForm({
 
       {type === "sell" && (
         <div>
-          <label htmlFor="price" className="field-label">Price</label>
+          <label htmlFor="price" className="field-label">Giá</label>
           <div className="relative">
             <input id="price" name="price" inputMode="numeric" className="input pr-10 tabular-nums" defaultValue={v.price} placeholder="50000" />
             <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-3">₫</span>
@@ -124,30 +124,30 @@ export function ListingForm({
       )}
       {type === "exchange" && (
         <div>
-          <label htmlFor="exchangeFor" className="field-label">What would you take in exchange?</label>
-          <input id="exchangeFor" name="exchangeFor" maxLength={200} className="input" defaultValue={v.exchangeFor} placeholder="e.g. a desk lamp, or any C++ textbook" />
+          <label htmlFor="exchangeFor" className="field-label">Bạn muốn đổi lấy gì?</label>
+          <input id="exchangeFor" name="exchangeFor" maxLength={200} className="input" defaultValue={v.exchangeFor} placeholder="VD: một chiếc đèn bàn, hoặc sách C++ bất kỳ" />
         </div>
       )}
 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor="category" className="field-label">Category</label>
+          <label htmlFor="category" className="field-label">Chuyên mục</label>
           <select id="category" name="category" defaultValue={v.category ?? ""} className="input" required>
-            <option value="" disabled>Choose…</option>
+            <option value="" disabled>Chọn…</option>
             {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </div>
         <div>
-          <label htmlFor="condition" className="field-label">Condition</label>
+          <label htmlFor="condition" className="field-label">Tình trạng</label>
           <select id="condition" name="condition" defaultValue={v.condition ?? ""} className="input" required>
-            <option value="" disabled>Choose…</option>
+            <option value="" disabled>Chọn…</option>
             {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
         </div>
       </div>
 
       <div>
-        <label htmlFor="description" className="field-label">Description</label>
+        <label htmlFor="description" className="field-label">Mô tả</label>
         <textarea
           id="description"
           name="description"
@@ -156,12 +156,12 @@ export function ListingForm({
           required
           className="input resize-y"
           defaultValue={v.description}
-          placeholder="Condition details, why you're passing it on, where on campus to meet."
+          placeholder="Tình trạng món đồ, lý do bạn muốn trao lại, địa điểm gặp nhau tại cơ sở."
         />
       </div>
 
       <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 -mx-4 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
-        <SubmitButton className="btn btn-primary w-full md:w-auto md:px-8" pending="Saving…">{submitLabel}</SubmitButton>
+        <SubmitButton className="btn btn-primary w-full md:w-auto md:px-8" pending="Đang lưu…">{submitLabel}</SubmitButton>
       </div>
     </form>
   );
@@ -175,7 +175,7 @@ function Thumb({ url, onRemove }: { url: string; onRemove: () => void }) {
       <button
         type="button"
         onClick={onRemove}
-        aria-label="Remove photo"
+        aria-label="Xóa ảnh"
         className="absolute right-1 top-1 grid size-7 place-items-center rounded-full bg-scrim text-white transition-colors hover:bg-scrim-strong"
       >
         <XIcon size={14} />

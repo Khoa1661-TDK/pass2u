@@ -16,14 +16,14 @@ export function Composer({ conversationId }: { conversationId: string }) {
       }}
       className="flex items-end gap-2"
     >
-      <label htmlFor="msg" className="sr-only">Message</label>
+      <label htmlFor="msg" className="sr-only">Tin nhắn</label>
       <textarea
         id="msg"
         name="body"
         rows={1}
         required
         maxLength={2000}
-        placeholder="Write a message"
+        placeholder="Nhắn tin…"
         className="input max-h-40 flex-1 resize-none !rounded-[22px]"
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -32,7 +32,7 @@ export function Composer({ conversationId }: { conversationId: string }) {
           }
         }}
       />
-      <SubmitButton className="btn btn-primary !size-11 !min-h-11 !rounded-full !p-0" aria-label="Send">
+      <SubmitButton className="btn btn-primary !size-11 !min-h-11 !rounded-full !p-0" aria-label="Gửi">
         <SendIcon />
       </SubmitButton>
     </form>

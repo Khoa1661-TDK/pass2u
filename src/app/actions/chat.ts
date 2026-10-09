@@ -70,22 +70,22 @@ export async function reservationStep(conversationId: string, step: Step) {
 
   if (step === "request" && isBuyer && !r && l.status === "available") {
     await db.insert(reservations).values({ listingId: l.id, buyerId: c.buyerId, sellerId: c.sellerId });
-    await post(c.id, u.id, "requested to reserve this item", "event");
+    await post(c.id, u.id, "đã xin giữ món này", "event");
   } else if (step === "accept" && !isBuyer && r?.status === "requested" && l.status === "available") {
     await setR("accepted");
     await setL("reserved");
-    await post(c.id, u.id, "accepted the reservation", "event");
+    await post(c.id, u.id, "đã chấp nhận giữ", "event");
   } else if (step === "decline" && !isBuyer && r?.status === "requested") {
     await setR("declined");
-    await post(c.id, u.id, "declined the reservation request", "event");
+    await post(c.id, u.id, "đã từ chối yêu cầu giữ", "event");
   } else if (step === "complete" && !isBuyer && r?.status === "accepted") {
     await setR("completed");
     await setL("completed");
-    await post(c.id, u.id, "marked the exchange as completed", "event");
+    await post(c.id, u.id, "đã đánh dấu giao dịch hoàn tất", "event");
   } else if (step === "cancel" && r) {
     await setR("cancelled");
     if (r.status === "accepted") await setL("available");
-    await post(c.id, u.id, "cancelled the reservation", "event");
+    await post(c.id, u.id, "đã hủy giữ", "event");
   }
   revalidatePath(`/inbox/${c.id}`);
   revalidatePath(`/listings/${l.id}`);

@@ -25,16 +25,16 @@ async function sendConfirmation(userId: string, email: string, name: string) {
   const link = `${process.env.APP_URL ?? "http://localhost:3000"}/confirm?token=${token}`;
   await sendEmail(
     email,
-    "Confirm your PASS2U email",
-    `<p>Hi ${name.replace(/[<>&]/g, "")},</p><p>Confirm your email to continue setting up PASS2U:</p><p><a href="${link}">Confirm email</a></p><p>The link expires in 24 hours.</p>`,
-    `Confirm link: ${link}`,
+    "Xác nhận email PASS2U của bạn",
+    `<p>Chào ${name.replace(/[<>&]/g, "")},</p><p>Hãy xác nhận email để tiếp tục thiết lập PASS2U:</p><p><a href="${link}">Xác nhận email</a></p><p>Liên kết này hết hạn sau 24 giờ.</p>`,
+    `Liên kết xác nhận: ${link}`,
   );
 }
 
 const signupSchema = z.object({
-  displayName: z.string().trim().min(2, "Enter your name (at least 2 characters).").max(60),
-  email: z.string().trim().toLowerCase().email("Enter a valid email address."),
-  password: z.string().min(8, "Password must be at least 8 characters.").max(128),
+  displayName: z.string().trim().min(2, "Nhập tên của bạn (ít nhất 2 ký tự).").max(60),
+  email: z.string().trim().toLowerCase().email("Nhập email hợp lệ."),
+  password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128),
 });
 
 export async function signup(_: FormState, fd: FormData): Promise<FormState> {
@@ -45,7 +45,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   const { displayName, email, password } = parsed.data;
 
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
-  if (exists) return { error: "An account with this email already exists. Try signing in.", fields };
+  if (exists) return { error: "Email này đã có tài khoản. Hãy đăng nhập.", fields };
 
   const [u] = await db
     .insert(users)
@@ -61,8 +61,8 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   const password = String(fd.get("password") ?? "");
   const [u] = await db.select().from(users).where(eq(users.email, email));
   if (!u || !(await bcrypt.compare(password, u.passwordHash)))
-    return { error: "Email or password is incorrect.", fields: { email } };
-  if (u.bannedAt) return { error: "This account has been suspended. Contact the PASS2U team.", fields: { email } };
+    return { error: "Email hoặc mật khẩu không đúng.", fields: { email } };
+  if (u.bannedAt) return { error: "Tài khoản này đã bị khóa. Hãy liên hệ đội ngũ PASS2U.", fields: { email } };
   await createSession(u.id);
   const next = String(fd.get("next") ?? "");
   redirect(gateFor(u) ?? (next.startsWith("/") && !next.startsWith("//") ? next : "/market"));
@@ -78,7 +78,7 @@ export async function resendConfirmation(): Promise<FormState> {
   if (!u) redirect("/login");
   if (u.emailVerifiedAt) redirect("/verify");
   await sendConfirmation(u.id, u.email, u.displayName);
-  return { ok: "We sent a new link. Check your inbox and spam folder." };
+  return { ok: "Đã gửi lại liên kết. Hãy kiểm tra hộp thư và thư mục spam." };
 }
 
 export async function confirmEmail(token: string) {

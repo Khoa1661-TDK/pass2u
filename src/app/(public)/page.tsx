@@ -81,32 +81,32 @@ export default async function Landing() {
       <div className="hero-slant relative bg-accent-soft">
         <header className="mx-auto grid h-16 w-full max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:h-20 sm:px-6">
           <nav className="hidden gap-7 text-xs font-semibold uppercase tracking-[0.14em] text-ink-2 sm:flex">
-            <a href="#cats" className="transition-colors hover:text-ink">Categories</a>
-            <a href="#fresh" className="transition-colors hover:text-ink">Just listed</a>
-            <a href="#verify" className="transition-colors hover:text-ink">Safety</a>
+            <a href="#cats" className="transition-colors hover:text-ink">Chuyên mục</a>
+            <a href="#fresh" className="transition-colors hover:text-ink">Vừa đăng</a>
+            <a href="#verify" className="transition-colors hover:text-ink">An toàn</a>
           </nav>
           <div className="col-start-1 sm:col-start-2"><Logo /></div>
           <nav className="flex items-center justify-end gap-5 text-xs font-semibold uppercase tracking-[0.14em]">
-            <Link href="/login" className="text-ink-2 transition-colors hover:text-ink">Sign in</Link>
-            <Link href="/signup" className="rounded-sm bg-ink px-3.5 py-2 text-bg transition-opacity hover:opacity-85">Join</Link>
+            <Link href="/login" className="text-ink-2 transition-colors hover:text-ink">Đăng nhập</Link>
+            <Link href="/signup" className="rounded-sm bg-ink px-3.5 py-2 text-bg transition-opacity hover:opacity-85">Tham gia</Link>
           </nav>
         </header>
 
         <section className="mx-auto grid max-w-6xl items-end gap-8 px-4 pt-8 sm:px-6 md:grid-cols-[1.05fr_0.95fr] md:pt-6">
           <div className="pb-6 md:pb-32">
             <h1 className="font-serif text-[clamp(2.9rem,6.2vw,5rem)] font-normal leading-[1.02] tracking-[-0.01em]">
-              <span className="rise block" style={{ animationDelay: "40ms" }}>Pass it on.</span>
-              <span className="rise block" style={{ animationDelay: "140ms" }}>Pick it up.</span>
+              <span className="rise block" style={{ animationDelay: "40ms" }}>Trao đi.</span>
+              <span className="rise block" style={{ animationDelay: "140ms" }}>Nhận lại.</span>
             </h1>
             <p className="rise mt-6 max-w-[36ch] text-lg leading-relaxed text-ink-2" style={{ animationDelay: "220ms" }}>
-              Textbooks, uniforms and dorm gear from FPT students who no longer need them, at student prices.
+              Sách giáo khoa, đồng phục và đồ dùng ký túc xá từ những sinh viên FPT không cần dùng nữa — với giá sinh viên.
             </p>
             <div className="rise mt-9 flex flex-wrap items-center gap-6" style={{ animationDelay: "300ms" }}>
               <Link href="/market" className="btn-editorial">
-                Browse listings
+                Khám phá
               </Link>
               <Link href="/signup" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-accent-ink">
-                Create an account
+                Tạo tài khoản
                 <ArrowRight size={16} weight="bold" className="transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5" />
               </Link>
             </div>
@@ -127,31 +127,31 @@ export default async function Landing() {
         {/* Search sits on the slant, overlapping the hero. */}
         <section className="relative z-10 mx-auto -mt-6 max-w-6xl px-4 pb-12 sm:px-6 md:-mt-14 md:pb-16">
           <form action="/market" method="get" role="search" className="rise max-w-2xl" style={{ animationDelay: "360ms" }}>
-            <label htmlFor="hero-q" className="sr-only">Search listings</label>
+            <label htmlFor="hero-q" className="sr-only">Tìm tin đăng</label>
             <div className="group flex items-center gap-2 rounded-sm border border-line-strong bg-raised p-1.5 pl-4 shadow-[0_10px_30px_-18px_oklch(0.3_0.03_42/0.45)] transition-[border-color,box-shadow] duration-200 focus-within:border-accent focus-within:shadow-[0_0_0_4px_color-mix(in_oklch,var(--color-accent)_15%,transparent)] [@media(hover:hover)]:hover:border-ink-3">
               <MagnifyingGlass size={22} className="shrink-0 text-ink-3" />
               <input
                 id="hero-q"
                 name="q"
                 type="search"
-                placeholder="Textbooks, fans, uniforms…"
+                placeholder="Sách giáo khoa, quạt, đồng phục…"
                 className="min-h-12 w-full min-w-0 bg-transparent text-base focus-visible:outline-none placeholder:text-ink-3"
               />
-              <button className="btn-editorial btn-editorial-accent shrink-0 !min-h-11">Search</button>
+              <button className="btn-editorial btn-editorial-accent shrink-0 !min-h-11">Tìm</button>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-              <span className="text-ink-3">Try</span>
+              <span className="text-ink-3">Thử</span>
               {QUICK.map((q) => (
                 <Link key={q} href={`/market?q=${encodeURIComponent(q)}`} className="chip !min-h-9 !px-3 !text-[13px]">{q}</Link>
               ))}
             </div>
-            <p className="mt-4 text-[13px] text-ink-3">Sign in with a verified student account to see results.</p>
+            <p className="mt-4 text-[13px] text-ink-3">Đăng nhập bằng tài khoản sinh viên đã xác minh để xem kết quả.</p>
           </form>
         </section>
 
         {/* Categories */}
         <section aria-labelledby="cats" className="reveal mx-auto max-w-6xl px-4 pb-14 sm:px-6 md:pb-20">
-          <h2 id="cats" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Shop by category</h2>
+          <h2 id="cats" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Mua theo chuyên mục</h2>
           <ul className="stagger scrollbar-none -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-6">
             {CATEGORIES.map((c, i) => {
               const I = CAT_ICONS[c.value] ?? Package;
@@ -177,7 +177,7 @@ export default async function Landing() {
                       )}
                     </span>
                     <span className="mt-2 block px-0.5 text-sm font-semibold leading-tight group-hover:text-accent-ink">{c.label}</span>
-                    {n ? <span className="mt-0.5 block px-0.5 text-[13px] tabular-nums text-ink-3">{n} available</span> : null}
+                    {n ? <span className="mt-0.5 block px-0.5 text-[13px] tabular-nums text-ink-3">{n} đang bán</span> : null}
                   </Link>
                 </li>
               );
@@ -190,12 +190,12 @@ export default async function Landing() {
           <div className="reveal mx-auto max-w-6xl px-4 py-14 sm:px-6 md:py-20">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 id="fresh" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Just listed</h2>
-                <p className="mt-1.5 text-ink-2">Posted by verified students. Sign in to message the seller.</p>
+                <h2 id="fresh" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Vừa đăng</h2>
+                <p className="mt-1.5 text-ink-2">Do sinh viên đã xác minh đăng. Đăng nhập để nhắn cho người bán.</p>
               </div>
               {featured.length > 0 && (
                 <Link href="/market" className="btn btn-ghost btn-sm group shrink-0">
-                  See all
+                  Xem tất cả
                   <ArrowRight size={16} weight="bold" className="transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5" />
                 </Link>
               )}
@@ -206,9 +206,9 @@ export default async function Landing() {
               ) : (
                 <div className="rounded-lg border border-dashed border-line-strong bg-raised px-6 py-12 text-center">
                   <Package size={32} className="mx-auto text-ink-3" />
-                  <p className="mt-3 font-semibold">The shelves are empty for now</p>
-                  <p className="mx-auto mt-1 max-w-[40ch] text-ink-2">Be the first to post. Seniors clearing out their dorm get the first buyers.</p>
-                  <Link href="/signup" className="btn-editorial mt-6">Post an item</Link>
+                  <p className="mt-3 font-semibold">Hiện chưa có món nào</p>
+                  <p className="mx-auto mt-1 max-w-[40ch] text-ink-2">Hãy là người đầu tiên đăng món. Sinh viên năm cuối dọn phòng ký túc xá sẽ có người mua đầu tiên.</p>
+                  <Link href="/signup" className="btn-editorial mt-6">Đăng món</Link>
                 </div>
               )}
             </div>
@@ -218,16 +218,16 @@ export default async function Landing() {
         {/* Verification, kept short */}
         <section aria-labelledby="verify" className="reveal mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[0.9fr_1.1fr] md:gap-16 md:py-20">
           <div>
-            <h2 id="verify" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Students only, checked by hand</h2>
+            <h2 id="verify" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Chỉ dành cho sinh viên — duyệt thủ công</h2>
             <p className="mt-3 max-w-[42ch] leading-relaxed text-ink-2">
-              Every account shows a physical FPT student card before it can buy or sell. No outsiders, no resellers.
+              Mọi tài khoản phải trình thẻ sinh viên FPT thật trước khi mua hoặc bán. Không người ngoài, không cò buôn.
             </p>
           </div>
           <ol className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
             {[
-              { I: IdentificationCard, t: "Upload your card", b: "A clear photo of your student ID." },
-              { I: ShieldCheck, t: "An admin approves", b: "A person checks it, not a bot." },
-              { I: Trash, t: "Photo deleted", b: "Removed within 30 days of review." },
+              { I: IdentificationCard, t: "Tải thẻ của bạn", b: "Ảnh thẻ sinh viên rõ nét." },
+              { I: ShieldCheck, t: "Quản trị viên duyệt", b: "Người thật xem xét, không phải bot." },
+              { I: Trash, t: "Ảnh bị xóa", b: "Bị xóa trong vòng 30 ngày sau khi duyệt." },
             ].map(({ I, t, b }) => (
               <li key={t} className="bg-raised p-5">
                 <I size={24} className="text-accent-ink" />
@@ -241,13 +241,13 @@ export default async function Landing() {
         {/* Compact CTA */}
         <section className="reveal mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
           <div className="flex flex-col items-start justify-between gap-5 rounded-lg bg-ink px-6 py-7 text-bg sm:flex-row sm:items-center sm:px-8">
-            <p className="max-w-[30ch] font-serif text-[1.75rem] leading-tight">Clearing out your dorm, or just moved in? Join in two minutes.</p>
+            <p className="max-w-[30ch] font-serif text-[1.75rem] leading-tight">Dọn phòng ký túc xá, hay mới chuyển đến? Tham gia chỉ trong hai phút.</p>
             <div className="flex shrink-0 gap-2">
               <Link href="/signup" className="btn-editorial btn-editorial-accent group">
-                Create account
+                Tạo tài khoản
                 <ArrowRight size={16} weight="bold" className="transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5" />
               </Link>
-              <Link href="/login" className="btn text-bg/80 [@media(hover:hover)]:hover:text-bg">Sign in</Link>
+              <Link href="/login" className="btn text-bg/80 [@media(hover:hover)]:hover:text-bg">Đăng nhập</Link>
             </div>
           </div>
         </section>
@@ -255,8 +255,8 @@ export default async function Landing() {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-4 py-6 text-sm text-ink-3 sm:px-6">
-          <span>PASS2U, a student project at FPT University</span>
-          <span>Not affiliated with FPT Education</span>
+          <span>PASS2U: dự án sinh viên tại Đại học FPT</span>
+          <span>Không trực thuộc FPT Education</span>
         </div>
       </footer>
     </div>

@@ -30,20 +30,20 @@ export default async function Profile({ params }: { params: Promise<{ id: string
         <div>
           <h1 className="flex items-center gap-2 text-[26px] font-bold">
             {u.displayName}
-            {u.verificationStatus === "approved" && <CheckBadge size={22} className="text-accent" aria-label="Verified FPT student" />}
+            {u.verificationStatus === "approved" && <CheckBadge size={22} className="text-accent" aria-label="Sinh viên FPT đã xác minh" />}
           </h1>
           <p className="text-ink-3">
-            {u.verificationStatus === "approved" ? "Verified FPT student" : u.role === "admin" ? "PASS2U admin" : "Student"}
-            {u.campus ? ` · ${u.campus}` : ""} · {done.length} completed
+            {u.verificationStatus === "approved" ? "Sinh viên FPT đã xác minh" : u.role === "admin" ? "Quản trị PASS2U" : "Sinh viên"}
+            {u.campus ? ` · ${u.campus}` : ""} · {done.length} đã hoàn tất
           </p>
         </div>
       </header>
       {u.bio && <p className="mt-5 max-w-prose text-ink-2">{u.bio}</p>}
-      <h2 className="mt-10 text-lg font-semibold">Active listings</h2>
-      <div className="mt-4">{active.length ? <ListingGrid items={active} /> : <p className="text-ink-3">Nothing listed right now.</p>}</div>
+      <h2 className="mt-10 text-lg font-semibold">Đang bán</h2>
+      <div className="mt-4">{active.length ? <ListingGrid items={active} /> : <p className="text-ink-3">Hiện chưa có tin đăng nào.</p>}</div>
       {done.length > 0 && (
         <>
-          <h2 className="mt-12 text-lg font-semibold">Completed</h2>
+          <h2 className="mt-12 text-lg font-semibold">Đã bán</h2>
           <div className="mt-4"><ListingGrid items={done} /></div>
         </>
       )}

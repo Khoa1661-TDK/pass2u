@@ -15,10 +15,10 @@ export function LoginForm({ next }: { next?: string }) {
         <input id="email" name="email" type="email" autoComplete="email" required className="input" defaultValue={state?.fields?.email} />
       </div>
       <div>
-        <label htmlFor="password" className="field-label">Password</label>
+        <label htmlFor="password" className="field-label">Mật khẩu</label>
         <input id="password" name="password" type="password" autoComplete="current-password" required className="input" />
       </div>
-      <SubmitButton className="btn btn-primary w-full" pending="Signing in…">Sign in</SubmitButton>
+      <SubmitButton className="btn btn-primary w-full" pending="Đang đăng nhập…">Đăng nhập</SubmitButton>
     </form>
   );
 }

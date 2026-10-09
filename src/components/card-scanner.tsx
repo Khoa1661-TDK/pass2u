@@ -22,8 +22,8 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
         stream = s;
         if (video.current) video.current.srcObject = s;
       })
-      .catch(() => setError("We couldn't open your camera. Allow camera access, or choose a photo instead."));
-    if (!navigator.mediaDevices) setError("This browser can't open the camera. Choose a photo instead.");
+      .catch(() => setError("Không mở được camera của bạn. Hãy cho phép truy cập camera, hoặc chọn ảnh thay thế."));
+    if (!navigator.mediaDevices) setError("Trình duyệt này không mở được camera. Hãy chọn ảnh thay thế.");
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
     return () => {
@@ -50,7 +50,7 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
 
   // Portal to <body>: animated page wrappers would otherwise trap position:fixed.
   return createPortal(
-    <div role="dialog" aria-modal="true" aria-label="Scan your student card" className="fixed inset-0 z-50 flex flex-col bg-black text-white">
+    <div role="dialog" aria-modal="true" aria-label="Quét thẻ sinh viên của bạn" className="fixed inset-0 z-50 flex flex-col bg-black text-white">
       <div className="relative flex-1 overflow-hidden">
         <video ref={video} autoPlay playsInline muted className="absolute inset-0 size-full object-cover" />
         <div className="absolute inset-0 grid place-items-center px-5">
@@ -61,9 +61,9 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
           />
         </div>
         <p className="absolute inset-x-0 top-6 px-6 text-center text-sm font-medium">
-          {error ?? "Fit the front of your card inside the frame. Avoid glare."}
+          {error ?? "Đặt mặt trước thẻ của bạn vào trong khung. Tránh để bị lóa."}
         </p>
-        <button type="button" onClick={onClose} aria-label="Close scanner" className="absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-white/15 transition-colors hover:bg-white/25">
+        <button type="button" onClick={onClose} aria-label="Đóng quét thẻ" className="absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-white/15 transition-colors hover:bg-white/25">
           <XIcon />
         </button>
       </div>
@@ -72,7 +72,7 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
           type="button"
           onClick={capture}
           disabled={!!error}
-          aria-label="Capture card"
+          aria-label="Chụp thẻ"
           className="size-18 rounded-full border-4 border-white bg-white/20 transition-transform active:scale-90 disabled:opacity-40"
         />
       </div>

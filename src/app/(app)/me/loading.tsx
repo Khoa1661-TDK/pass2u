@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div aria-busy="true" aria-label="Loading listings">
+    <div aria-busy="true" aria-label="Đang tải tin đăng">
       <div className="h-7 w-28 rounded-md bg-sunken" />
       <div className="mt-4 h-11 rounded-full bg-sunken md:w-24" />
       <div className="mt-3 flex gap-2">

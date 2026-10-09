@@ -16,8 +16,8 @@ const schema = z.object({
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^[A-Z]{2}\d{5,7}$/, "Student code looks like SE190123: two letters, then digits."),
-  campus: z.enum(CAMPUSES, { message: "Choose your campus." }),
+    .regex(/^[A-Z]{2}\d{5,7}$/, "Mã sinh viên có dạng SE190123: hai chữ cái, sau đó là chữ số."),
+  campus: z.enum(CAMPUSES, { message: "Chọn cơ sở của bạn." }),
 });
 
 export async function submitVerification(_: FormState, fd: FormData): Promise<FormState> {
@@ -30,7 +30,7 @@ export async function submitVerification(_: FormState, fd: FormData): Promise<Fo
   if (!parsed.success) return { error: parsed.error.issues[0].message, fields };
 
   const file = fd.get("idCard");
-  if (!(file instanceof File) || file.size === 0) return { error: "Add a photo of the front of your student ID card.", fields };
+  if (!(file instanceof File) || file.size === 0) return { error: "Thêm ảnh mặt trước thẻ sinh viên của bạn.", fields };
   const bad = checkImage(file);
   if (bad) return { error: bad, fields };
 
@@ -39,9 +39,9 @@ export async function submitVerification(_: FormState, fd: FormData): Promise<Fo
   // Read the card here, where the student can't tamper with the result.
   const card = await checkCard(image, u.displayName);
   if (card && !card.ocrLooksFpt && !card.ocrCode)
-    return { error: "This doesn't look like an FPT University student card. Photograph the front of your card, flat and in good light.", fields };
+    return { error: "Đây không giống thẻ sinh viên Đại học FPT. Hãy chụp mặt trước thẻ, đặt phẳng và đủ ánh sáng.", fields };
   if (card?.ocrCode && card.ocrCode !== parsed.data.studentCode)
-    return { error: `Your card shows ${card.ocrCode}, but you entered ${parsed.data.studentCode}. Fix the code or retake the photo.`, fields };
+    return { error: `Thẻ của bạn ghi ${card.ocrCode}, nhưng bạn nhập ${parsed.data.studentCode}. Hãy sửa mã hoặc chụp lại ảnh.`, fields };
 
   const ocr = card ?? { ocrCode: null, ocrNameMatch: null, ocrLooksFpt: null, ocrText: null };
   await db

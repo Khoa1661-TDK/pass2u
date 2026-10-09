@@ -9,7 +9,7 @@ export function ResendForm() {
   return (
     <form action={action} className="space-y-3">
       <FormMessage state={state} />
-      <SubmitButton className="btn btn-secondary" pending="Sending…">Send a new link</SubmitButton>
+      <SubmitButton className="btn btn-secondary" pending="Đang gửi…">Gửi link mới</SubmitButton>
     </form>
   );
 }

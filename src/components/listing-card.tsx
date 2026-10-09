@@ -16,9 +16,9 @@ export function ListingCard({ l }: { l: ListingCardData }) {
           />
         )}
         <div className="absolute left-2 top-2 flex gap-1.5">
-          {l.type === "free" && <span className="tag bg-ok-soft text-ok">Free</span>}
-          {l.status === "reserved" && <span className="tag bg-warn-soft text-warn">Reserved</span>}
-          {l.status === "completed" && <span className="tag bg-sunken text-ink-2">Done</span>}
+          {l.type === "free" && <span className="tag bg-ok-soft text-ok">Miễn phí</span>}
+          {l.status === "reserved" && <span className="tag bg-warn-soft text-warn">Đã giữ</span>}
+          {l.status === "completed" && <span className="tag bg-sunken text-ink-2">Đã bán</span>}
         </div>
       </div>
       <div className="mt-2.5 px-0.5">

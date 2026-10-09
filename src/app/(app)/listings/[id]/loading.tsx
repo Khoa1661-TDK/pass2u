@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div aria-busy="true" aria-label="Loading listing" className="grid animate-pulse gap-6 motion-reduce:animate-none md:grid-cols-[1.1fr_0.9fr] md:gap-10">
+    <div aria-busy="true" aria-label="Đang tải tin đăng" className="grid animate-pulse gap-6 motion-reduce:animate-none md:grid-cols-[1.1fr_0.9fr] md:gap-10">
       <div className="aspect-[4/5] rounded-lg bg-sunken" />
       <div>
         <div className="h-8 w-32 rounded-md bg-sunken" />

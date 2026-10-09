@@ -18,20 +18,20 @@ export function SettingsForm({ defaults }: { defaults: { displayName: string; bi
     <form key={`${defaults.displayName}|${defaults.campus}|${defaults.bio}`} action={action} className="space-y-5">
       <FormMessage state={state} />
       <div>
-        <label htmlFor="displayName" className="field-label">Display name</label>
+        <label htmlFor="displayName" className="field-label">Tên hiển thị</label>
         <input id="displayName" name="displayName" className="input" defaultValue={v.displayName} maxLength={60} />
       </div>
       <div>
-        <label htmlFor="campus" className="field-label">Campus</label>
+        <label htmlFor="campus" className="field-label">Cơ sở</label>
         <select id="campus" name="campus" className="input" defaultValue={v.campus}>
           {CAMPUSES.map((c) => <option key={c}>{c}</option>)}
         </select>
       </div>
       <div>
-        <label htmlFor="bio" className="field-label">About you</label>
-        <textarea id="bio" name="bio" rows={3} maxLength={280} className="input resize-none" defaultValue={v.bio} placeholder="Major, year, where you usually hang out on campus" />
+        <label htmlFor="bio" className="field-label">Giới thiệu về bạn</label>
+        <textarea id="bio" name="bio" rows={3} maxLength={280} className="input resize-none" defaultValue={v.bio} placeholder="Ngành học, khóa, nơi bạn thường hay trong trường" />
       </div>
-      <SubmitButton pending="Saving…">Save changes</SubmitButton>
+      <SubmitButton pending="Đang lưu…">Lưu thay đổi</SubmitButton>
     </form>
   );
 }

@@ -22,12 +22,12 @@ export default async function VerificationQueue() {
     .orderBy(asc(idDocuments.uploadedAt));
 
   if (!queue.length)
-    return <p className="py-14 text-center text-ink-3">No students waiting. New ID uploads appear here.</p>;
+    return <p className="py-14 text-center text-ink-3">Không có sinh viên đang chờ. Ảnh thẻ mới tải lên sẽ xuất hiện ở đây.</p>;
 
   return (
     <div>
       <p className="text-sm text-ink-3">
-        {queue.length} waiting, oldest first. Check that the name and student code match the card, and that the card looks genuine. Photos are deleted {ID_RETENTION_DAYS} days after your decision.
+        {queue.length} đang chờ, lâu nhất xếp trước. Kiểm tra tên và mã sinh viên khớp với thẻ, và thẻ trông thật. Ảnh sẽ bị xóa sau {ID_RETENTION_DAYS} ngày kể từ quyết định của bạn.
       </p>
       <ul className="mt-6 divide-y divide-line border-y border-line">
         {queue.map((s) => (
@@ -35,34 +35,34 @@ export default async function VerificationQueue() {
             {s.uploadedAt ? (
               <a href={`/api/admin/id/${s.id}`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg bg-sunken">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/admin/id/${s.id}`} alt={`Student ID card submitted by ${s.displayName}`} className="aspect-[1.586] w-full object-contain" />
+                <img src={`/api/admin/id/${s.id}`} alt={`Ảnh thẻ sinh viên do ${s.displayName} nộp`} className="aspect-[1.586] w-full object-contain" />
               </a>
             ) : (
-              <div className="grid aspect-[1.586] place-items-center rounded-lg bg-sunken text-sm text-ink-3">Photo missing</div>
+              <div className="grid aspect-[1.586] place-items-center rounded-lg bg-sunken text-sm text-ink-3">Thiếu ảnh</div>
             )}
             <div className="flex flex-col">
               <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
-                <dt className="text-ink-3">Name</dt><dd className="font-semibold">{s.displayName}</dd>
-                <dt className="text-ink-3">Student code</dt><dd className="font-mono font-medium">{s.studentCode}</dd>
-                <dt className="text-ink-3">Campus</dt><dd>{s.campus}</dd>
+                <dt className="text-ink-3">Tên</dt><dd className="font-semibold">{s.displayName}</dd>
+                <dt className="text-ink-3">Mã sinh viên</dt><dd className="font-mono font-medium">{s.studentCode}</dd>
+                <dt className="text-ink-3">Cơ sở</dt><dd>{s.campus}</dd>
                 <dt className="text-ink-3">Email</dt><dd className="break-all">{s.email}</dd>
-                <dt className="text-ink-3">Submitted</dt><dd>{s.uploadedAt ? timeAgo(s.uploadedAt) : "Unknown"}</dd>
+                <dt className="text-ink-3">Đã nộp</dt><dd>{s.uploadedAt ? timeAgo(s.uploadedAt) : "Không rõ"}</dd>
               </dl>
-              <ul aria-label="Automatic card checks" className="mt-4 flex flex-wrap gap-1.5">
-                <Check ok={s.ocrCode == null ? null : s.ocrCode === s.studentCode} label={s.ocrCode ? `Card code ${s.ocrCode}` : "Card code unreadable"} />
-                <Check ok={s.ocrNameMatch} label={s.ocrNameMatch ? "Name on card" : s.ocrNameMatch === false ? "Name not found on card" : "Name not checked"} />
-                <Check ok={s.ocrLooksFpt} label={s.ocrLooksFpt ? "FPT card wording" : s.ocrLooksFpt === false ? "No FPT wording" : "Card not checked"} />
+              <ul aria-label="Kiểm tra thẻ tự động" className="mt-4 flex flex-wrap gap-1.5">
+                <Check ok={s.ocrCode == null ? null : s.ocrCode === s.studentCode} label={s.ocrCode ? `Mã trên thẻ ${s.ocrCode}` : "Không đọc được mã trên thẻ"} />
+                <Check ok={s.ocrNameMatch} label={s.ocrNameMatch ? "Có tên trên thẻ" : s.ocrNameMatch === false ? "Không thấy tên trên thẻ" : "Chưa kiểm tra tên"} />
+                <Check ok={s.ocrLooksFpt} label={s.ocrLooksFpt ? "Có chữ FPT" : s.ocrLooksFpt === false ? "Không có chữ FPT" : "Chưa kiểm tra thẻ"} />
               </ul>
               <div className="mt-5 flex flex-wrap items-start gap-2 md:mt-auto">
                 <RefreshForm action={approveStudent.bind(null, s.id)}>
-                  <SubmitButton pending="Approving…">Approve</SubmitButton>
+                  <SubmitButton pending="Đang duyệt…">Duyệt</SubmitButton>
                 </RefreshForm>
                 <details className="group">
-                  <summary className="btn btn-danger list-none">Reject…</summary>
+                  <summary className="btn btn-danger list-none">Từ chối…</summary>
                   <RefreshForm action={rejectStudent.bind(null, s.id)} className="mt-3 w-[min(360px,80vw)] space-y-2">
-                    <label htmlFor={`r-${s.id}`} className="field-label">Reason shown to the student</label>
-                    <textarea id={`r-${s.id}`} name="reason" rows={2} className="input resize-none" defaultValue="The photo is blurry or the student code doesn't match. Please upload a clearer photo." />
-                    <SubmitButton className="btn btn-danger btn-sm" pending="Rejecting…">Confirm rejection</SubmitButton>
+                    <label htmlFor={`r-${s.id}`} className="field-label">Lý do hiển thị với sinh viên</label>
+                    <textarea id={`r-${s.id}`} name="reason" rows={2} className="input resize-none" defaultValue="Ảnh bị mờ hoặc mã sinh viên không khớp. Vui lòng tải lên ảnh rõ hơn." />
+                    <SubmitButton className="btn btn-danger btn-sm" pending="Đang từ chối…">Xác nhận từ chối</SubmitButton>
                   </RefreshForm>
                 </details>
               </div>

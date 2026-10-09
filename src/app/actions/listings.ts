@@ -16,11 +16,11 @@ const vals = <T extends readonly { value: string }[]>(l: T) => l.map((x) => x.va
 
 const listingSchema = z
   .object({
-    title: z.string().trim().min(3, "Give the item a title (at least 3 characters).").max(80, "Keep the title under 80 characters."),
-    description: z.string().trim().min(10, "Describe the item in at least 10 characters.").max(2000),
-    category: z.enum(vals(CATEGORIES), { message: "Choose a category." }),
-    condition: z.enum(vals(CONDITIONS), { message: "Choose the item's condition." }),
-    type: z.enum(vals(TYPES), { message: "Choose sell, exchange, or free." }),
+    title: z.string().trim().min(3, "Đặt tiêu đề cho món này (ít nhất 3 ký tự).").max(80, "Tiêu đề không quá 80 ký tự."),
+    description: z.string().trim().min(10, "Mô tả món này ít nhất 10 ký tự.").max(2000),
+    category: z.enum(vals(CATEGORIES), { message: "Chọn một chuyên mục." }),
+    condition: z.enum(vals(CONDITIONS), { message: "Chọn tình trạng của món." }),
+    type: z.enum(vals(TYPES), { message: "Chọn bán, trao đổi hoặc miễn phí." }),
     price: z.string().trim().optional(),
     exchangeFor: z.string().trim().max(200).optional(),
   })
@@ -29,13 +29,13 @@ const listingSchema = z
     if (v.type === "sell") {
       const n = Number((v.price ?? "").replace(/[.,\s₫]/g, ""));
       if (!Number.isInteger(n) || n < 1000 || n > 100_000_000) {
-        ctx.addIssue({ code: "custom", message: "Enter a price between 1.000 ₫ and 100.000.000 ₫." });
+        ctx.addIssue({ code: "custom", message: "Nhập giá từ 1.000 ₫ đến 100.000.000 ₫." });
         return z.NEVER;
       }
       price = n;
     }
     if (v.type === "exchange" && !v.exchangeFor) {
-      ctx.addIssue({ code: "custom", message: "Say what you'd like in exchange." });
+      ctx.addIssue({ code: "custom", message: "Nêu rõ bạn muốn đổi lấy gì." });
       return z.NEVER;
     }
     return { ...v, price, exchangeFor: v.type === "exchange" ? v.exchangeFor! : null };
@@ -57,8 +57,8 @@ export async function createListing(_: FormState, fd: FormData): Promise<FormSta
   if (!parsed.success) return { error: parsed.error.issues[0].message, fields };
 
   const files = newFiles(fd);
-  if (files.length === 0) return { error: "Add at least one photo so buyers can see the item.", fields };
-  if (files.length > MAX_IMAGES) return { error: `You can add up to ${MAX_IMAGES} photos.`, fields };
+  if (files.length === 0) return { error: "Thêm ít nhất một ảnh để người mua thấy món này.", fields };
+  if (files.length > MAX_IMAGES) return { error: `Bạn chỉ có thể thêm tối đa ${MAX_IMAGES} ảnh.`, fields };
   for (const f of files) {
     const bad = checkImage(f);
     if (bad) return { error: bad, fields };
@@ -74,7 +74,7 @@ export async function createListing(_: FormState, fd: FormData): Promise<FormSta
 export async function updateListing(id: string, _: FormState, fd: FormData): Promise<FormState> {
   const u = await requireApproved();
   const [l] = await db.select().from(listings).where(and(eq(listings.id, id), eq(listings.sellerId, u.id)));
-  if (!l || l.status === "removed") return { error: "This listing can't be edited." };
+  if (!l || l.status === "removed") return { error: "Tin đăng này không còn để sửa." };
 
   const fields = readFields(fd);
   const parsed = listingSchema.safeParse(fields);
@@ -84,8 +84,8 @@ export async function updateListing(id: string, _: FormState, fd: FormData): Pro
   const files = newFiles(fd);
   const existing = await db.select().from(listingImages).where(eq(listingImages.listingId, id));
   const kept = existing.filter((i) => keep.includes(i.id));
-  if (kept.length + files.length === 0) return { error: "Keep or add at least one photo.", fields };
-  if (kept.length + files.length > MAX_IMAGES) return { error: `You can have up to ${MAX_IMAGES} photos.`, fields };
+  if (kept.length + files.length === 0) return { error: "Giữ hoặc thêm ít nhất một ảnh.", fields };
+  if (kept.length + files.length > MAX_IMAGES) return { error: `Bạn có thể đăng tối đa ${MAX_IMAGES} ảnh.`, fields };
   for (const f of files) {
     const bad = checkImage(f);
     if (bad) return { error: bad, fields };
@@ -129,7 +129,7 @@ export async function setListingStatus(id: string, status: "available" | "reserv
 export async function reportListing(id: string, _: FormState, fd: FormData): Promise<FormState> {
   const u = await requireApproved();
   const reason = String(fd.get("reason") ?? "").trim();
-  if (reason.length < 5) return { error: "Tell us briefly what's wrong (at least 5 characters)." };
+  if (reason.length < 5) return { error: "Mô tả ngắn gọn vấn đề (ít nhất 5 ký tự)." };
   await db.insert(reports).values({ listingId: id, reporterId: u.id, reason: reason.slice(0, 500) });
-  return { ok: "Thanks. An admin will review this listing." };
+  return { ok: "Cảm ơn bạn. Quản trị viên sẽ xem xét tin đăng này." };
 }

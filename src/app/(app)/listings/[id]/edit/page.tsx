@@ -6,7 +6,7 @@ import { requireApproved } from "@/lib/session";
 import { updateListing } from "@/app/actions/listings";
 import { ListingForm } from "@/components/listing-form";
 
-export const metadata = { title: "Edit listing" };
+export const metadata = { title: "Sửa tin đăng" };
 
 export default async function EditListing({ params }: { params: Promise<{ id: string }> }) {
   const u = await requireApproved();
@@ -16,12 +16,12 @@ export default async function EditListing({ params }: { params: Promise<{ id: st
   const imgs = await db.select({ id: listingImages.id, url: listingImages.url }).from(listingImages).where(eq(listingImages.listingId, id)).orderBy(asc(listingImages.position));
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-[28px] font-bold">Edit listing</h1>
+      <h1 className="text-[28px] font-bold">Sửa tin đăng</h1>
       <div className="mt-8">
         <ListingForm
           action={updateListing.bind(null, id)}
           existing={imgs}
-          submitLabel="Save changes"
+          submitLabel="Lưu thay đổi"
           defaults={{
             title: l.title,
             description: l.description,
