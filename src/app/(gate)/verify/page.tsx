@@ -17,7 +17,8 @@ export default async function Verify() {
   if (u.verificationStatus === "pending")
     return (
       <>
-        <Steps current={3} />
+        {/* Card submitted, approval still pending: step 3 stays the active one. */}
+        <Steps current={2} />
         <span className="tag bg-warn-soft text-warn">Đang chờ duyệt</span>
         <h1 className="mt-3 font-serif text-[2.25rem] font-normal leading-tight">Đang kiểm tra thẻ của bạn</h1>
         <p className="mt-3 text-ink-2">

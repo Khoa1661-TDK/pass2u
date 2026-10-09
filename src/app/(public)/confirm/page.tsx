@@ -8,8 +8,8 @@ export default async function Confirm({ searchParams }: { searchParams: Promise<
   const { token } = await searchParams;
   const ok = token ? await confirmEmail(token) : false;
   return ok ? (
-    <AuthFrame title="Đã xác nhận email" subtitle="Còn một bước nữa: trình thẻ sinh viên của bạn.">
-      <Link href="/verify" className="btn btn-primary w-full">Tiếp tục xác minh thẻ</Link>
+    <AuthFrame title="Đã xác nhận email" subtitle="Thẻ sinh viên của bạn đã được gửi kèm hồ sơ. Quản trị viên sẽ duyệt trong thời gian sớm nhất.">
+      <Link href="/verify" className="btn btn-primary w-full">Tiếp tục</Link>
     </AuthFrame>
   ) : (
     <AuthFrame title="Link này đã hết hạn" subtitle="Link xác nhận có hạn 24 giờ. Đăng nhập để chúng tôi gửi link mới.">

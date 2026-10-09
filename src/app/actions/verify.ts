@@ -1,24 +1,16 @@
 "use server";
 
-import { z } from "zod";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, idDocuments } from "@/lib/schema";
 import { requireUser } from "@/lib/session";
 import { checkImage } from "@/lib/storage";
-import { CAMPUSES } from "@/lib/constants";
 import { checkCard } from "@/lib/card-check";
+import { studentFieldsSchema } from "@/lib/validation";
 import type { FormState } from "./auth";
 
-const schema = z.object({
-  studentCode: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(/^[A-Z]{2}\d{5,7}$/, "Mã sinh viên có dạng SE190123: hai chữ cái, sau đó là chữ số."),
-  campus: z.enum(CAMPUSES, { message: "Chọn cơ sở của bạn." }),
-});
+const schema = studentFieldsSchema;
 
 export async function submitVerification(_: FormState, fd: FormData): Promise<FormState> {
   const u = await requireUser();

@@ -46,7 +46,7 @@ export default async function Students({ searchParams }: { searchParams: Promise
           <tbody className="divide-y divide-line">
             {rows.map((u) => (
               <tr key={u.id}>
-                <td className="py-3 pr-4"><Link href={`/u/${u.id}`} className="font-medium hover:underline">{u.displayName}</Link>{u.role === "admin" && <span className="tag ml-2 bg-ink text-bg">Quản trị</span>}</td>
+                <td className="py-3 pr-4"><Link href={`/admin/users/${u.id}`} className="font-medium hover:underline">{u.displayName}</Link>{u.role === "admin" && <span className="tag ml-2 bg-ink text-bg">Quản trị</span>}</td>
                 <td className="py-3 pr-4 font-mono">{u.studentCode ?? "Chưa có"}</td>
                 <td className="py-3 pr-4 text-ink-2">{u.email}{!u.emailVerifiedAt && <span className="text-ink-3"> (chưa xác nhận)</span>}</td>
                 <td className="py-3 pr-4">

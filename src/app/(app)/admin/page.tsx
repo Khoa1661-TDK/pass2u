@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { idDocuments, users } from "@/lib/schema";
@@ -6,6 +7,7 @@ import { purgeExpiredIds } from "@/lib/purge";
 import { approveStudent, rejectStudent } from "@/app/actions/admin";
 import { SubmitButton } from "@/components/ui";
 import { RefreshForm } from "@/components/refresh-form";
+import { CheckTag } from "@/components/check-tag";
 import { timeAgo } from "@/lib/time";
 import { ID_RETENTION_DAYS } from "@/lib/constants";
 
@@ -42,16 +44,16 @@ export default async function VerificationQueue() {
             )}
             <div className="flex flex-col">
               <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
-                <dt className="text-ink-3">Tên</dt><dd className="font-semibold">{s.displayName}</dd>
+                <dt className="text-ink-3">Tên</dt><dd className="font-semibold"><Link href={`/admin/users/${s.id}`} className="hover:underline">{s.displayName}</Link></dd>
                 <dt className="text-ink-3">Mã sinh viên</dt><dd className="font-mono font-medium">{s.studentCode}</dd>
                 <dt className="text-ink-3">Cơ sở</dt><dd>{s.campus}</dd>
                 <dt className="text-ink-3">Email</dt><dd className="break-all">{s.email}</dd>
                 <dt className="text-ink-3">Đã nộp</dt><dd>{s.uploadedAt ? timeAgo(s.uploadedAt) : "Không rõ"}</dd>
               </dl>
               <ul aria-label="Kiểm tra thẻ tự động" className="mt-4 flex flex-wrap gap-1.5">
-                <Check ok={s.ocrCode == null ? null : s.ocrCode === s.studentCode} label={s.ocrCode ? `Mã trên thẻ ${s.ocrCode}` : "Không đọc được mã trên thẻ"} />
-                <Check ok={s.ocrNameMatch} label={s.ocrNameMatch ? "Có tên trên thẻ" : s.ocrNameMatch === false ? "Không thấy tên trên thẻ" : "Chưa kiểm tra tên"} />
-                <Check ok={s.ocrLooksFpt} label={s.ocrLooksFpt ? "Có chữ FPT" : s.ocrLooksFpt === false ? "Không có chữ FPT" : "Chưa kiểm tra thẻ"} />
+                <CheckTag ok={s.ocrCode == null ? null : s.ocrCode === s.studentCode} label={s.ocrCode ? `Mã trên thẻ ${s.ocrCode}` : "Không đọc được mã trên thẻ"} />
+                <CheckTag ok={s.ocrNameMatch} label={s.ocrNameMatch ? "Có tên trên thẻ" : s.ocrNameMatch === false ? "Không thấy tên trên thẻ" : "Chưa kiểm tra tên"} />
+                <CheckTag ok={s.ocrLooksFpt} label={s.ocrLooksFpt ? "Có chữ FPT" : s.ocrLooksFpt === false ? "Không có chữ FPT" : "Chưa kiểm tra thẻ"} />
               </ul>
               <div className="mt-5 flex flex-wrap items-start gap-2 md:mt-auto">
                 <RefreshForm action={approveStudent.bind(null, s.id)}>
@@ -72,10 +74,4 @@ export default async function VerificationQueue() {
       </ul>
     </div>
   );
-}
-
-// Green when the check passed, red when it failed, grey when it couldn't run.
-function Check({ ok, label }: { ok: boolean | null; label: string }) {
-  const tone = ok === true ? "bg-ok-soft text-ok" : ok === false ? "bg-danger-soft text-danger" : "bg-sunken text-ink-3";
-  return <li className={`tag ${tone}`}>{label}</li>;
 }

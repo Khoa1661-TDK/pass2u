@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Browser } from "@playwright/test";
+import { test, expect, type Page, type Browser, type BrowserContext } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -19,30 +19,32 @@ async function confirmLinkFor(email: string) {
   throw new Error("No confirmation email logged for " + email);
 }
 
-async function signUpAndConfirm(browser: Browser, name: string) {
-  const ctx = await browser.newContext({ ...test.info().project.use, permissions: ["camera"] });
-  const page = await ctx.newPage();
-  const email = `${name.split(" ")[0].toLowerCase()}.${run}@example.com`;
+async function newPage(browser: Browser, camera = false) {
+  const ctx: BrowserContext = await browser.newContext({
+    ...test.info().project.use,
+    ...(camera ? { permissions: ["camera"] } : {}),
+  });
+  return ctx.newPage();
+}
+
+async function fillSignup(page: Page, name: string, email: string) {
   await page.goto("/signup");
   await page.getByLabel("Họ và tên").fill(name);
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Mật khẩu").fill("password123");
-  await page.getByRole("button", { name: "Tạo tài khoản" }).click();
-  await expect(page.getByRole("heading", { name: "Kiểm tra hộp thư" })).toBeVisible();
-  await page.goto(await confirmLinkFor(email));
-  await page.getByRole("link", { name: "Tiếp tục xác minh thẻ" }).click();
-  return page;
 }
 
-async function signUpAndSubmitId(browser: Browser, name: string, code: string, card: string) {
-  const ctx = await browser.newContext({ ...test.info().project.use });
-  const page = await ctx.newPage();
-  const email = `${name.split(" ")[0].toLowerCase()}.${run}@example.com`;
-  await page.goto("/");
-  await page.getByRole("link", { name: "Tham gia", exact: true }).click();
-  await page.getByLabel("Họ và tên").fill(name);
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Mật khẩu").fill("password123");
+// The student ID is presented during sign-up now: code, campus, and card photo.
+// The name must match the name printed on the fixture card, so emails carry the tag.
+async function signUp(browser: Browser, name: string, code: string, card: string, tag = "") {
+  const page = await newPage(browser);
+  const email = `${name.split(" ")[0].toLowerCase()}.${run}${tag}@example.com`;
+  await fillSignup(page, name, email);
+  await page.getByLabel("Cơ sở").selectOption("Hà Nội");
+  await page.locator('input[name="idCard"]').setInputFiles(fx(card));
+  // Let the card reader finish so it can't overwrite the typed code.
+  await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 60_000 });
+  await page.getByLabel("Mã sinh viên").fill(code);
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
   await expect(page.getByRole("heading", { name: "Kiểm tra hộp thư" })).toBeVisible();
 
@@ -51,13 +53,7 @@ async function signUpAndSubmitId(browser: Browser, name: string, code: string, c
   await expect(page).toHaveURL(/check-email/);
 
   await page.goto(await confirmLinkFor(email));
-  await page.getByRole("link", { name: "Tiếp tục xác minh thẻ" }).click();
-  await page.locator('input[name="idCard"]').setInputFiles(fx(card));
-  // Let the card reader finish so it can't overwrite the typed code.
-  await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 30_000 });
-  await page.getByLabel("Mã sinh viên").fill(code);
-  await page.getByLabel("Cơ sở").selectOption("Hà Nội");
-  await page.getByRole("button", { name: "Gửi duyệt" }).click();
+  await page.getByRole("link", { name: "Tiếp tục", exact: true }).click();
   await expect(page.getByRole("heading", { name: /Đang kiểm tra thẻ/ })).toBeVisible();
 
   // Pending users still can't browse.
@@ -67,8 +63,7 @@ async function signUpAndSubmitId(browser: Browser, name: string, code: string, c
 }
 
 async function adminLogin(browser: Browser) {
-  const ctx = await browser.newContext({ ...test.info().project.use });
-  const page = await ctx.newPage();
+  const page = await newPage(browser);
   await page.goto("/login");
   await page.getByLabel("Email").fill(process.env.ADMIN_EMAIL ?? "admin@pass2u.test");
   await page.getByLabel("Mật khẩu").fill(process.env.ADMIN_PASSWORD ?? "admin12345");
@@ -89,9 +84,9 @@ async function approve(admin: Page, email: string) {
   await expect(admin.locator("li", { hasText: email })).toHaveCount(0, { timeout: 20_000 });
 }
 
-test("sign up, verify, list, chat, reserve, complete", async ({ browser }) => {
-  const seller = await signUpAndSubmitId(browser, "Lan Nguyen", "SE180001", "card-lan.png");
-  const buyer = await signUpAndSubmitId(browser, "Minh Tran", "HE190002", "card-minh.png");
+test("sign up with ID, verify, list, chat, reserve, complete", async ({ browser }) => {
+  const seller = await signUp(browser, "Lan Nguyen", "SE180001", "card-lan.png");
+  const buyer = await signUp(browser, "Minh Tran", "HE190002", "card-minh.png");
 
   // ID photos are not visible to students.
   const sellerId = await seller.page.evaluate(() => fetch("/api/admin/id/00000000-0000-0000-0000-000000000000").then((r) => r.status));
@@ -175,9 +170,36 @@ test("signed-out visitors are sent to sign in", async ({ page }) => {
   }
 });
 
+test("admin opens a student record and approves from it", async ({ browser }) => {
+  const student = await signUp(browser, "Lan Nguyen", "SE180001", "card-lan.png", "r");
+  const admin = await adminLogin(browser);
+
+  await admin.goto("/admin/users");
+  await admin.getByLabel("Tìm sinh viên").fill(student.email);
+  await admin.getByLabel("Tìm sinh viên").press("Enter");
+  await admin.getByRole("link", { name: "Lan Nguyen" }).click();
+  await expect(admin).toHaveURL(/\/admin\/users\/[0-9a-f-]{36}/);
+
+  await expect(admin.getByRole("heading", { name: "Lan Nguyen", level: 2 })).toBeVisible();
+  await expect(admin.getByText("SE180001", { exact: true })).toBeVisible();
+  await expect(admin.getByRole("img", { name: /Ảnh thẻ sinh viên do Lan Nguyen nộp/ })).toBeVisible();
+  await expect(admin.getByLabel("Kiểm tra thẻ tự động")).toContainText("Có tên trên thẻ");
+  await expect(admin.getByLabel("Kiểm tra thẻ tự động")).toContainText("Có chữ FPT");
+  await expect(admin.getByText(/0 tin · 0 đang hoạt động/)).toBeVisible();
+  await expect(admin.getByRole("link", { name: "Xem trang công khai" })).toBeVisible();
+
+  await admin.getByRole("button", { name: "Duyệt" }).click();
+  await expect(admin.getByText("Đã duyệt")).toBeVisible({ timeout: 20_000 });
+
+  // The student can browse right after.
+  await student.page.goto("/market");
+  await expect(student.page).toHaveURL(/market/);
+});
+
 test("card reader fills the student code from a photo", async ({ browser }) => {
   test.setTimeout(120_000);
-  const page = await signUpAndConfirm(browser, "Ocrtest Lan");
+  const page = await newPage(browser);
+  await page.goto("/signup");
   await page.locator('input[name="idCard"]').setInputFiles(fx("card-ocr.png"));
   await expect(page.getByText("Đã đọc được SE190123 từ thẻ của bạn", { exact: false })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByLabel("Mã sinh viên")).toHaveValue("SE190123");
@@ -185,7 +207,8 @@ test("card reader fills the student code from a photo", async ({ browser }) => {
 
 test("scanner opens the camera and captures the framed card", async ({ browser }) => {
   test.setTimeout(120_000);
-  const page = await signUpAndConfirm(browser, "Scantest Minh");
+  const page = await newPage(browser, true);
+  await page.goto("/signup");
   await page.getByRole("button", { name: "Quét thẻ" }).click();
   const dialog = page.getByRole("dialog", { name: "Quét thẻ sinh viên của bạn" });
   await expect(dialog).toBeVisible();
@@ -200,18 +223,22 @@ test("scanner opens the camera and captures the framed card", async ({ browser }
 
 test("server rejects a card that doesn't match or isn't an FPT card", async ({ browser }) => {
   test.setTimeout(120_000);
-  const page = await signUpAndConfirm(browser, "Checktest Hoa");
+  const page = await newPage(browser);
+  await fillSignup(page, "Checktest Hoa", `checktest.${run}@example.com`);
+  await page.getByLabel("Cơ sở").selectOption("Hà Nội");
   await page.locator('input[name="idCard"]').setInputFiles(fx("card-lan.png"));
   await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 60_000 });
   await page.getByLabel("Mã sinh viên").fill("SE111111");
-  await page.getByLabel("Cơ sở").selectOption("Hà Nội");
-  await page.getByRole("button", { name: "Gửi duyệt" }).click();
+  await page.getByRole("button", { name: "Tạo tài khoản" }).click();
   await expect(page.getByText("Thẻ của bạn ghi SE180001, nhưng bạn nhập SE111111")).toBeVisible({ timeout: 60_000 });
 
   await page.locator('input[name="idCard"]').setInputFiles(fx("item.png"));
   await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 60_000 });
+  // The failed submit cleared the password (it is never echoed back), so type it again.
+  await page.getByLabel("Mật khẩu").fill("password123");
   await page.getByLabel("Mã sinh viên").fill("SE111111");
   await page.getByLabel("Cơ sở").selectOption("Hà Nội");
-  await page.getByRole("button", { name: "Gửi duyệt" }).click();
+  await page.getByRole("button", { name: "Tạo tài khoản" }).click();
   await expect(page.getByText("Đây không giống thẻ sinh viên Đại học FPT")).toBeVisible({ timeout: 60_000 });
+  await expect(page).toHaveURL(/signup/);
 });

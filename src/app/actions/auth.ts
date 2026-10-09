@@ -6,9 +6,12 @@ import { createHash, randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, emailTokens } from "@/lib/schema";
+import { users, emailTokens, idDocuments } from "@/lib/schema";
 import { createSession, destroySession, getUser, gateFor } from "@/lib/session";
 import { sendEmail } from "@/lib/email";
+import { checkImage } from "@/lib/storage";
+import { checkCard } from "@/lib/card-check";
+import { studentFieldsSchema } from "@/lib/validation";
 
 export type FormState = { error?: string; ok?: string; fields?: Record<string, string> } | undefined;
 
@@ -35,22 +38,46 @@ const signupSchema = z.object({
   displayName: z.string().trim().min(2, "Nhập tên của bạn (ít nhất 2 ký tự).").max(60),
   email: z.string().trim().toLowerCase().email("Nhập email hợp lệ."),
   password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128),
+  studentCode: studentFieldsSchema.shape.studentCode,
+  campus: studentFieldsSchema.shape.campus,
 });
 
 export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   const raw = Object.fromEntries(fd) as Record<string, string>;
   const parsed = signupSchema.safeParse(raw);
-  const fields = { displayName: raw.displayName ?? "", email: raw.email ?? "" };
+  const fields = {
+    displayName: raw.displayName ?? "",
+    email: raw.email ?? "",
+    studentCode: raw.studentCode ?? "",
+    campus: raw.campus ?? "",
+  };
   if (!parsed.success) return { error: parsed.error.issues[0].message, fields };
-  const { displayName, email, password } = parsed.data;
+  const { displayName, email, password, studentCode, campus } = parsed.data;
 
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
   if (exists) return { error: "Email này đã có tài khoản. Hãy đăng nhập.", fields };
 
+  // The student card is presented at sign-up, not as a later step.
+  const file = fd.get("idCard");
+  if (!(file instanceof File) || file.size === 0) return { error: "Thêm ảnh mặt trước thẻ sinh viên của bạn.", fields };
+  const bad = checkImage(file);
+  if (bad) return { error: bad, fields };
+
+  const image = Buffer.from(await file.arrayBuffer());
+
+  // Read the card here, where the student can't tamper with the result.
+  const card = await checkCard(image, displayName);
+  if (card && !card.ocrLooksFpt && !card.ocrCode)
+    return { error: "Đây không giống thẻ sinh viên Đại học FPT. Hãy chụp mặt trước thẻ, đặt phẳng và đủ ánh sáng.", fields };
+  if (card?.ocrCode && card.ocrCode !== studentCode)
+    return { error: `Thẻ của bạn ghi ${card.ocrCode}, nhưng bạn nhập ${studentCode}. Hãy sửa mã hoặc chụp lại ảnh.`, fields };
+
+  const ocr = card ?? { ocrCode: null, ocrNameMatch: null, ocrLooksFpt: null, ocrText: null };
   const [u] = await db
     .insert(users)
-    .values({ email, displayName, passwordHash: await bcrypt.hash(password, 10) })
+    .values({ email, displayName, passwordHash: await bcrypt.hash(password, 10), studentCode, campus, verificationStatus: "pending" })
     .returning();
+  await db.insert(idDocuments).values({ userId: u.id, image, mime: file.type, ...ocr });
   await sendConfirmation(u.id, u.email, u.displayName);
   await createSession(u.id);
   redirect("/check-email");
