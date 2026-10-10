@@ -17,7 +17,7 @@ export default async function VerificationQueue() {
   await requireAdmin();
   await purgeExpiredIds();
   const queue = await db
-    .select({ id: users.id, displayName: users.displayName, email: users.email, studentCode: users.studentCode, campus: users.campus, uploadedAt: idDocuments.uploadedAt, ocrCode: idDocuments.ocrCode, ocrNameMatch: idDocuments.ocrNameMatch, ocrLooksFpt: idDocuments.ocrLooksFpt })
+    .select({ id: users.id, displayName: users.displayName, email: users.email, studentCode: users.studentCode, campus: users.campus, phone: users.phone, cccd: users.cccd, birthDate: users.birthDate, residence: users.residence, cohort: users.cohort, major: users.major, uploadedAt: idDocuments.uploadedAt, ocrCode: idDocuments.ocrCode, ocrNameMatch: idDocuments.ocrNameMatch, ocrLooksFpt: idDocuments.ocrLooksFpt })
     .from(users)
     .leftJoin(idDocuments, eq(idDocuments.userId, users.id))
     .where(eq(users.verificationStatus, "pending"))
@@ -47,6 +47,11 @@ export default async function VerificationQueue() {
                 <dt className="text-ink-3">Tên</dt><dd className="font-semibold"><Link href={`/admin/users/${s.id}`} className="hover:underline">{s.displayName}</Link></dd>
                 <dt className="text-ink-3">Mã sinh viên</dt><dd className="font-mono font-medium">{s.studentCode}</dd>
                 <dt className="text-ink-3">Cơ sở</dt><dd>{s.campus}</dd>
+                <dt className="text-ink-3">Điện thoại</dt><dd className="font-mono">{s.phone ?? "—"}</dd>
+                <dt className="text-ink-3">Căn cước</dt><dd className="font-mono">{s.cccd ?? "—"}</dd>
+                <dt className="text-ink-3">Ngày sinh</dt><dd>{s.birthDate ?? "—"}</dd>
+                <dt className="text-ink-3">Nơi ở</dt><dd>{s.residence ?? "—"}</dd>
+                {(s.cohort || s.major) && (<><dt className="text-ink-3">Khóa / Ngành</dt><dd>{[s.cohort, s.major].filter(Boolean).join(" · ")}</dd></>)}
                 <dt className="text-ink-3">Email</dt><dd className="break-all">{s.email}</dd>
                 <dt className="text-ink-3">Đã nộp</dt><dd>{s.uploadedAt ? timeAgo(s.uploadedAt) : "Không rõ"}</dd>
               </dl>

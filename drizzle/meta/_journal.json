@@ -15,6 +15,13 @@
       "when": 1791476329201,
       "tag": "0001_card_ocr",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791628418912,
+      "tag": "0002_identity_fields",
+      "breakpoints": true
     }
   ]
 }

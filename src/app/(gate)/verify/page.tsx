@@ -27,6 +27,8 @@ export default async function Verify() {
         <dl className="mt-8 divide-y divide-line border-y border-line text-sm">
           <div className="flex justify-between py-3"><dt className="text-ink-3">Mã sinh viên</dt><dd className="font-medium">{u.studentCode}</dd></div>
           <div className="flex justify-between py-3"><dt className="text-ink-3">Cơ sở</dt><dd className="font-medium">{u.campus}</dd></div>
+          {u.phone && <div className="flex justify-between py-3"><dt className="text-ink-3">Số điện thoại</dt><dd className="font-mono">{u.phone}</dd></div>}
+          {u.residence && <div className="flex justify-between py-3"><dt className="text-ink-3">Nơi ở</dt><dd className="font-medium">{u.residence}</dd></div>}
         </dl>
       </>
     );

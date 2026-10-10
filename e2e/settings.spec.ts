@@ -9,6 +9,10 @@ test("saved settings show up right away", async ({ page }) => {
   await page.goto("/me/settings");
   const name = `Admin ${Date.now() % 10000}`;
   await page.getByLabel("Tên hiển thị").fill(name);
+  // Phone and residence are required profile fields now; the admin account
+  // predates them, so fill them for the save to pass.
+  await page.getByLabel("Số điện thoại").fill("0912345678");
+  await page.getByLabel("Nơi bạn đang ở").fill("Văn phòng PASS2U");
   await page.getByRole("button", { name: "Lưu thay đổi" }).click();
   await expect(page.getByText("Đã lưu.")).toBeVisible();
   await expect(page.getByLabel("Tên hiển thị")).toHaveValue(name);

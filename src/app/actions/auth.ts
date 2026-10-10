@@ -11,7 +11,7 @@ import { createSession, destroySession, getUser, gateFor } from "@/lib/session";
 import { sendEmail } from "@/lib/email";
 import { checkImage } from "@/lib/storage";
 import { checkCard } from "@/lib/card-check";
-import { studentFieldsSchema } from "@/lib/validation";
+import { studentFieldsSchema, identityFieldsSchema } from "@/lib/validation";
 
 export type FormState = { error?: string; ok?: string; fields?: Record<string, string> } | undefined;
 
@@ -40,6 +40,7 @@ const signupSchema = z.object({
   password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128),
   studentCode: studentFieldsSchema.shape.studentCode,
   campus: studentFieldsSchema.shape.campus,
+  ...identityFieldsSchema.shape,
 });
 
 export async function signup(_: FormState, fd: FormData): Promise<FormState> {
@@ -50,9 +51,15 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
     email: raw.email ?? "",
     studentCode: raw.studentCode ?? "",
     campus: raw.campus ?? "",
+    phone: raw.phone ?? "",
+    cccd: raw.cccd ?? "",
+    birthDate: raw.birthDate ?? "",
+    residence: raw.residence ?? "",
+    cohort: raw.cohort ?? "",
+    major: raw.major ?? "",
   };
   if (!parsed.success) return { error: parsed.error.issues[0].message, fields };
-  const { displayName, email, password, studentCode, campus } = parsed.data;
+  const { displayName, email, password, studentCode, campus, phone, cccd, birthDate, residence, cohort, major } = parsed.data;
 
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
   if (exists) return { error: "Email này đã có tài khoản. Hãy đăng nhập.", fields };
@@ -75,7 +82,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   const ocr = card ?? { ocrCode: null, ocrNameMatch: null, ocrLooksFpt: null, ocrText: null };
   const [u] = await db
     .insert(users)
-    .values({ email, displayName, passwordHash: await bcrypt.hash(password, 10), studentCode, campus, verificationStatus: "pending" })
+    .values({ email, displayName, passwordHash: await bcrypt.hash(password, 10), studentCode, campus, phone, cccd, birthDate, residence, cohort, major, verificationStatus: "pending" })
     .returning();
   await db.insert(idDocuments).values({ userId: u.id, image, mime: file.type, ...ocr });
   await sendConfirmation(u.id, u.email, u.displayName);

@@ -22,6 +22,19 @@ export const TYPES = [
 
 export const CAMPUSES = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Cần Thơ", "Quy Nhơn"] as const;
 
+// FPT enrolment cohorts ("K" + intake year) and the main faculties. Optional
+// at sign-up; they help admins place a student inside the school.
+export const COHORTS = ["K21", "K22", "K23", "K24", "K25", "K26"] as const;
+
+export const MAJORS = [
+  "Công nghệ thông tin",
+  "Quản trị kinh doanh",
+  "Quản trị khách sạn – lữ hành",
+  "Ngôn ngữ Anh",
+  "Kiến trúc – Mỹ thuật",
+  "Kỹ thuật điện – điện tử",
+] as const;
+
 // ID photos are deleted this many days after an admin approves or rejects them.
 export const ID_RETENTION_DAYS = 30;
 

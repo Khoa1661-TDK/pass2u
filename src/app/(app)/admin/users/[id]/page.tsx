@@ -87,6 +87,12 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
       <dl className="mt-8 grid gap-x-8 gap-y-3 border-y border-line py-4 text-sm sm:grid-cols-2">
         <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Mã sinh viên</dt><dd className="font-mono font-medium">{u.studentCode ?? "Chưa có"}</dd></div>
         <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Cơ sở</dt><dd className="font-medium">{u.campus ?? "Chưa có"}</dd></div>
+        <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Số điện thoại</dt><dd className="font-mono">{u.phone ?? "—"}</dd></div>
+        <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Căn cước công dân</dt><dd className="font-mono">{u.cccd ?? "—"}</dd></div>
+        <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Ngày sinh</dt><dd>{u.birthDate ?? "—"}</dd></div>
+        <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Nơi ở</dt><dd>{u.residence ?? "—"}</dd></div>
+        <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Khóa</dt><dd>{u.cohort ?? "—"}</dd></div>
+        <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Ngành học</dt><dd>{u.major ?? "—"}</dd></div>
         <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Tham gia</dt><dd>{fmt(u.createdAt)}</dd></div>
         <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Email xác nhận lúc</dt><dd>{u.emailVerifiedAt ? fmt(u.emailVerifiedAt) : "—"}</dd></div>
         {u.verifiedAt && <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Được duyệt lúc</dt><dd>{fmt(u.verifiedAt)}</dd></div>}

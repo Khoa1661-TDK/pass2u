@@ -9,6 +9,7 @@ import {
   uniqueIndex,
   index,
   boolean,
+  date,
 } from "drizzle-orm/pg-core";
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => "bytea" });
@@ -29,6 +30,15 @@ export const users = pgTable("users", {
   studentCode: text("student_code"),
   campus: text("campus"),
   bio: text("bio"),
+  // Identity details collected at sign-up so admins can locate a student if
+  // a transaction goes wrong. Admin-only; accounts made before these fields
+  // exist may have nulls.
+  phone: text("phone"),
+  cccd: text("cccd"),
+  birthDate: date("birth_date"),
+  residence: text("residence"),
+  cohort: text("cohort"),
+  major: text("major"),
   role: roleEnum("role").notNull().default("student"),
   emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
   verificationStatus: verificationEnum("verification_status").notNull().default("none"),
