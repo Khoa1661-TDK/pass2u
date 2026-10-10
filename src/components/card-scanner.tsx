@@ -8,9 +8,13 @@ import { XIcon } from "./icons";
 const RATIO = 1.586;
 
 // Auto-capture like a QR scan: sample the framed area a few times a second
-// and snap when a bright, card-sized rectangle has held still for ~1s.
+// and snap when a bright, card-sized rectangle has held still. A card that
+// clearly stands out from its surroundings snaps in ~1s; a card that fills the
+// frame or sits on a bright desk snaps in ~2s (its edges can't be measured,
+// so we rely on "bright + steady" alone).
 const TICK_MS = 250;
-const HITS_TO_CAPTURE = 4;
+const HITS_FAST = 4;
+const HITS_SLOW = 8;
 const GRID_W = 48;
 const GRID_H = 30;
 
@@ -69,7 +73,8 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
     if (error) return;
     const canvas = document.createElement("canvas");
     let prev: Float32Array | null = null;
-    let hits = 0;
+    let hitsFast = 0;
+    let hitsSlow = 0;
     let done = false;
     const timer = setInterval(() => {
       const v = video.current, f = frame.current;
@@ -116,10 +121,14 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
         diff = sum / grid.length;
       }
       prev = grid;
-      const cardLike = innerBright > 0.5 && innerBright - ringBright > 0.12;
-      const steady = diff < 10;
-      hits = cardLike && steady ? hits + 1 : 0;
-      if (hits >= HITS_TO_CAPTURE) {
+      // Fast: bright card standing out from a darker surround, held steady.
+      const fast = innerBright > 0.5 && innerBright - ringBright > 0.12 && diff < 10;
+      // Slow: bright and steady for longer — covers a card that overflows the
+      // frame or lies on a bright desk, where the edge test can't work.
+      const slow = innerBright > 0.45 && diff < 16;
+      hitsFast = fast ? hitsFast + 1 : 0;
+      hitsSlow = slow ? hitsSlow + 1 : 0;
+      if (hitsFast >= HITS_FAST || hitsSlow >= HITS_SLOW) {
         done = true;
         capture();
       }
