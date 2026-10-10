@@ -2,17 +2,21 @@
 
 import { useRef, useState } from "react";
 import { CAMPUSES } from "@/lib/constants";
+import { titleCase } from "@/lib/card-name";
+import { namesMatch } from "@/lib/name-match";
 import { CameraIcon } from "@/components/icons";
 import { CardScanner } from "@/components/card-scanner";
-import { readStudentCode } from "@/lib/read-student-code";
+import { readCardInfo } from "@/lib/read-student-code";
+
+type Ocr = { state: "reading" | "found" | "missed"; code?: string; name?: string; nameMismatch?: boolean };
 
 // Student code + campus + ID-card capture, shared by sign-up and re-verify.
-// The client-side read only autofills the code; the server re-reads the card.
+// The client-side read only pre-fills the form; the server re-reads the card.
 export function StudentIdFields({ defaults }: { defaults: { studentCode: string; campus: string } }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [campus, setCampus] = useState(defaults.campus);
-  const [ocr, setOcr] = useState<{ state: "reading" | "found" | "missed"; code?: string } | null>(null);
+  const [ocr, setOcr] = useState<Ocr | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const codeRef = useRef<HTMLInputElement>(null);
 
@@ -20,11 +24,14 @@ export function StudentIdFields({ defaults }: { defaults: { studentCode: string;
     setPreview(URL.createObjectURL(file));
     setOcr({ state: "reading" });
     try {
-      const code = await readStudentCode(file);
-      if (code && codeRef.current) {
-        codeRef.current.value = code;
-        setOcr({ state: "found", code });
-      } else setOcr({ state: "missed" });
+      const { code, name } = await readCardInfo(file);
+      // Sign-up has a name field on the same page; re-verify does not.
+      const nameInput = document.getElementById("displayName") as HTMLInputElement | null;
+      if (name && nameInput && !nameInput.value.trim()) nameInput.value = titleCase(name);
+      const nameMismatch = !!name && !!nameInput?.value.trim() && !namesMatch(nameInput.value, name);
+      if (code && codeRef.current) codeRef.current.value = code;
+      if (code || name) setOcr({ state: "found", code: code ?? undefined, name: name ?? undefined, nameMismatch });
+      else setOcr({ state: "missed" });
     } catch {
       setOcr({ state: "missed" });
     }
@@ -70,7 +77,7 @@ export function StudentIdFields({ defaults }: { defaults: { studentCode: string;
           {ocr?.state === "reading" && (
             <span className="absolute inset-x-0 bottom-0 overflow-hidden bg-ink/70 py-2 text-xs font-medium text-bg">
               <span className="scan-line absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-              <span className="relative">Đang đọc mã sinh viên…</span>
+              <span className="relative">Đang đọc thẻ…</span>
             </span>
           )}
         </div>
@@ -96,9 +103,15 @@ export function StudentIdFields({ defaults }: { defaults: { studentCode: string;
             />
           </label>
         </div>
-        <p aria-live="polite" className={`field-hint ${ocr?.state === "found" ? "!text-ok" : ""}`}>
+        <p aria-live="polite" className={`field-hint ${ocr?.state === "found" && !ocr.nameMismatch ? "!text-ok" : ""} ${ocr?.nameMismatch ? "!text-warn" : ""}`}>
           {ocr?.state === "found"
-            ? `Đã đọc được ${ocr.code} từ thẻ của bạn. Kiểm tra lại cho khớp trước khi gửi.`
+            ? ocr.code && ocr.name
+              ? ocr.nameMismatch
+                ? `Đã đọc được ${ocr.code} từ thẻ của bạn. Tên trên thẻ là "${titleCase(ocr.name)}" — không khớp với họ tên bạn nhập.`
+                : `Đã đọc được ${ocr.code} và tên ${titleCase(ocr.name)} từ thẻ của bạn. Kiểm tra lại cho khớp trước khi gửi.`
+              : ocr.code
+                ? `Đã đọc được ${ocr.code} từ thẻ của bạn. Kiểm tra lại cho khớp trước khi gửi.`
+                : `Đã đọc được tên ${titleCase(ocr.name!)} từ thẻ của bạn. Bạn hãy nhập mã ở phía trên.`
             : ocr?.state === "missed"
               ? "Không đọc được mã tự động. Bạn hãy nhập mã ở phía trên."
               : null}

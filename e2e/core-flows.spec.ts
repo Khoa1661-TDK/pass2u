@@ -196,13 +196,14 @@ test("admin opens a student record and approves from it", async ({ browser }) =>
   await expect(student.page).toHaveURL(/market/);
 });
 
-test("card reader fills the student code from a photo", async ({ browser }) => {
+test("card reader fills the student code and name from a photo", async ({ browser }) => {
   test.setTimeout(120_000);
   const page = await newPage(browser);
   await page.goto("/signup");
   await page.locator('input[name="idCard"]').setInputFiles(fx("card-ocr.png"));
-  await expect(page.getByText("Đã đọc được SE190123 từ thẻ của bạn", { exact: false })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("Đã đọc được SE190123 và tên Ocrtest Lan từ thẻ của bạn", { exact: false })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByLabel("Mã sinh viên")).toHaveValue("SE190123");
+  await expect(page.getByLabel("Họ và tên")).toHaveValue("Ocrtest Lan");
 });
 
 test("scanner opens the camera and captures the framed card", async ({ browser }) => {
