@@ -1,7 +1,7 @@
 import "server-only";
 import path from "node:path";
 import sharp from "sharp";
-import { findStudentCode } from "./student-code";
+import { pickCode } from "./card-vote";
 import { namesMatch, near, plain } from "./name-match";
 
 export type CardCheck = { ocrCode: string | null; ocrNameMatch: boolean; ocrLooksFpt: boolean; ocrText: string };
@@ -22,8 +22,14 @@ export async function checkCard(image: Buffer, displayName: string): Promise<Car
   });
   try {
     const run = (async () => {
-      const full = await sharp(image).resize(1500).grayscale().png().toBuffer();
-      let text = (await worker.recognize(full)).data.text;
+      // Whole card three ways: plain grayscale, and two black-and-white cuts
+      // that drop the light-grey world map printed behind the text.
+      const gray = sharp(image).rotate().resize(1500).grayscale();
+      const passes: string[] = [];
+      passes.push((await worker.recognize(await gray.clone().png().toBuffer())).data.text);
+      for (const t of [120, 140])
+        passes.push((await worker.recognize(await gray.clone().normalise().threshold(t).png().toBuffer())).data.text);
+      let text = passes.join("\n");
       const { width, height } = await sharp(image).metadata();
       if (width && height) {
         const band = await sharp(image)
@@ -41,14 +47,15 @@ export async function checkCard(image: Buffer, displayName: string): Promise<Car
           .toBuffer();
         text += "\n" + (await worker.recognize(band)).data.text;
       }
-      return text;
+      return { text, passes };
     })();
-    const text = await Promise.race([run, new Promise<null>((r) => setTimeout(() => r(null), 30_000))]);
-    if (text == null) return null;
+    const out = await Promise.race([run, new Promise<null>((r) => setTimeout(() => r(null), 30_000))]);
+    if (out == null) return null;
+    const { text, passes } = out;
     const flat = plain(text);
     const words = [...new Set(flat.split(/\s+/))];
     return {
-      ocrCode: findStudentCode(text),
+      ocrCode: pickCode(passes),
       ocrNameMatch: namesMatch(displayName, text),
       ocrLooksFpt: /\bFPT\b|\bFPT\s?UNIVERSITY\b|DAI HOC FPT/.test(flat) || words.some((w) => w.length === 3 && near(w, "FPT")),
       ocrText: text.slice(0, 2000),

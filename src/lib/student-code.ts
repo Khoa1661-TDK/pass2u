@@ -1,15 +1,34 @@
-// Finds an FPT student code (two letters + 6-7 digits) in OCR text.
-const CODE = /\b([A-Z]{2})\s?(\d{6,7})\b/;
+// Finds an FPT student code in OCR text, e.g. SE190123 or HE170456.
+// The first letter is the campus (H Hà Nội, S HCM, D Đà Nẵng, C Cần Thơ,
+// Q Quy Nhơn), the second the school (E engineering, S business, A arts).
+// Real phone photos come back noisy, so letters and digits that OCR mixes
+// up are repaired before matching.
 
-// OCR often confuses letters and digits in the number part.
-const DIGITISE: Record<string, string> = { O: "0", Q: "0", D: "0", I: "1", L: "1", Z: "2", S: "5", B: "8", G: "6" };
+const TO_DIGIT: Record<string, string> = { O: "0", Q: "0", D: "0", U: "0", I: "1", L: "1", T: "1", Z: "2", S: "5", B: "8", G: "6" };
+const TO_LETTER: Record<string, string> = { "5": "S", "0": "D", "8": "S", "2": "Z", "1": "I" };
+
+const CAMPUS = "HSDCQ";
+const SCHOOL = "EAS";
+
+// Two code-ish characters, optional separator, then 6-7 digit-ish characters.
+const CANDIDATE = /([A-Z0-9]{2})[\s.\-:]?([0-9OQDUILTZSBG]{6,7})(?![0-9])/g;
 
 export function findStudentCode(text: string): string | null {
-  const lines = text.toUpperCase().split(/\n/);
-  for (const raw of lines) {
-    const line = raw.replace(/([A-Z]{2})\s*([0-9OQDILZSBG]{6,7})/g, (_, p: string, n: string) => p + n.replace(/[OQDILZSBG]/g, (c) => DIGITISE[c]));
-    const m = line.match(CODE);
-    if (m) return m[1] + m[2];
+  const flat = text.toUpperCase().replace(/[^A-Z0-9\n.\-:\s]/g, " ");
+  let best: { code: string; score: number } | null = null;
+  for (const m of flat.matchAll(CANDIDATE)) {
+    const prefix = m[1].split("").map((c) => (/[0-9]/.test(c) ? TO_LETTER[c] ?? c : c)).join("");
+    if (!/^[A-Z]{2}$/.test(prefix)) continue;
+    const digits = m[2].replace(/[^0-9]/g, (c) => TO_DIGIT[c] ?? c);
+    if (!/^\d{6,7}$/.test(digits)) continue;
+    // Prefer real FPT prefixes, codes that needed no repair, and 6 digits.
+    let score = 0;
+    if (CAMPUS.includes(prefix[0]) && SCHOOL.includes(prefix[1])) score += 4;
+    if (prefix === m[1]) score += 1;
+    if (digits === m[2]) score += 2;
+    if (digits.length === 6) score += 1;
+    if (!best || score > best.score) best = { code: prefix + digits, score };
   }
-  return null;
+  return best && best.score >= 4 ? best.code : null;
 }
+
