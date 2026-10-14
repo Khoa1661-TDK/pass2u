@@ -100,7 +100,8 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   if (u.bannedAt) return { error: "Tài khoản này đã bị khóa. Hãy liên hệ đội ngũ PASS2U.", fields: { email } };
   await createSession(u.id);
   const next = String(fd.get("next") ?? "");
-  redirect(gateFor(u) ?? (next.startsWith("/") && !next.startsWith("//") ? next : "/market"));
+  // Same-site paths only: "//host", "/\\host" and "/\t/host" all resolve to another site.
+  redirect(gateFor(u) ?? (/^\/(?![\/\\])[^\\\s]*$/.test(next) ? next : "/market"));
 }
 
 export async function logout() {
