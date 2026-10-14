@@ -1,6 +1,7 @@
 "use client";
 
 import { pickCode, pickName } from "./card-vote";
+import { findStudentCode } from "./student-code";
 
 // Reads a student code (e.g. SE190123) and the cardholder name off a card
 // photo, in the browser. This only pre-fills the form: an admin still checks
@@ -10,15 +11,22 @@ import { pickCode, pickName } from "./card-vote";
 // Grayscale and upscale so small card text reads better. With `cut`, also
 // stretch contrast and go black-and-white at that level, which drops the
 // light-grey world map printed behind the name and code.
-async function prepare(img: Blob, cut?: number): Promise<HTMLCanvasElement> {
+// `turn` rotates by quarter turns clockwise, for a card held sideways.
+async function prepare(img: Blob, cut?: number, turn = 0): Promise<HTMLCanvasElement> {
   const bmp = await createImageBitmap(img);
-  const scale = Math.min(2, 2000 / bmp.width);
+  const side = turn % 2 === 1;
+  const w0 = side ? bmp.height : bmp.width, h0 = side ? bmp.width : bmp.height;
+  const scale = Math.min(2, 2000 / w0);
   const c = document.createElement("canvas");
-  c.width = Math.round(bmp.width * scale);
-  c.height = Math.round(bmp.height * scale);
+  c.width = Math.round(w0 * scale);
+  c.height = Math.round(h0 * scale);
   const ctx = c.getContext("2d")!;
   ctx.filter = "grayscale(1)";
-  ctx.drawImage(bmp, 0, 0, c.width, c.height);
+  ctx.translate(c.width / 2, c.height / 2);
+  ctx.rotate((turn * Math.PI) / 2);
+  const dw = Math.round(bmp.width * scale), dh = Math.round(bmp.height * scale);
+  ctx.drawImage(bmp, -dw / 2, -dh / 2, dw, dh);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (cut == null) return c;
   const px = ctx.getImageData(0, 0, c.width, c.height);
   const d = px.data;
@@ -43,8 +51,19 @@ export async function readCardInfo(img: Blob): Promise<{ code: string | null; na
   try {
     // Three reads, then vote: one pass alone flips digits or garbles the
     // name on real photos far more often than all three agree on a mistake.
-    const texts: string[] = [];
-    for (const cut of [undefined, 120, 140]) texts.push((await worker.recognize(await prepare(img, cut))).data.text);
+    // The camera often catches a portrait card sideways: find the turn at
+    // which the student code reads, then do the black-and-white passes there.
+    // Upside-down text also yields a "code", so compare the reader's own
+    // confidence across turns rather than taking the first hit.
+    let turn = 0, first = "", best = -1;
+    for (const t of [0, 1, 3, 2]) {
+      const { text, confidence } = (await worker.recognize(await prepare(img, undefined, t))).data;
+      const score = confidence + (findStudentCode(text) ? 100 : 0);
+      if (score > best) { best = score; turn = t; first = text; }
+      if (t === 0 && score > 160) break;
+    }
+    const texts = [first];
+    for (const cut of [120, 140]) texts.push((await worker.recognize(await prepare(img, cut, turn))).data.text);
     return { code: pickCode(texts), name: pickName(texts) };
   } finally {
     await worker.terminate();

@@ -44,7 +44,10 @@ const SURNAME: Record<string, string> = {
 
 // The name candidate that agrees most with the other passes, word by word.
 export function pickName(texts: string[]): string | null {
-  const names = texts.map(findCardName).map((n) => (n ? tidy(n) : null)).filter((n): n is string => !!n);
+  // A pass that can't find the code is usually reading junk (a sideways or
+  // blurred card); its "name" is noise, so only trust passes with a code.
+  const withCode = texts.filter((t) => findStudentCode(t));
+  const names = withCode.map(findCardName).map((n) => (n ? tidy(n) : null)).filter((n): n is string => !!n);
   let best: string | null = null, score = -1;
   for (const n of names) {
     const words = plain(n).split(/\s+/).filter((w) => w.length > 1);

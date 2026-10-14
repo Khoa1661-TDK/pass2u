@@ -2,6 +2,7 @@ import "server-only";
 import path from "node:path";
 import sharp from "sharp";
 import { pickCode } from "./card-vote";
+import { findStudentCode } from "./student-code";
 import { namesMatch, near, plain } from "./name-match";
 
 export type CardCheck = { ocrCode: string | null; ocrNameMatch: boolean; ocrLooksFpt: boolean; ocrText: string };
@@ -24,9 +25,21 @@ export async function checkCard(image: Buffer, displayName: string): Promise<Car
     const run = (async () => {
       // Whole card three ways: plain grayscale, and two black-and-white cuts
       // that drop the light-grey world map printed behind the text.
-      const gray = sharp(image).rotate().resize(1500).grayscale();
-      const passes: string[] = [];
-      passes.push((await worker.recognize(await gray.clone().png().toBuffer())).data.text);
+      // The camera often catches a portrait card sideways: find the turn at
+      // which the student code reads.
+      const upright = await sharp(image).rotate().toBuffer();
+      let gray = sharp(upright).resize(1500).grayscale();
+      // Upside-down text also yields a "code", so compare the reader's own
+      // confidence across turns rather than taking the first hit.
+      let first = "", best = -1;
+      for (const deg of [0, 90, 270, 180]) {
+        const g = sharp(await sharp(upright).rotate(deg).toBuffer()).resize(1500).grayscale();
+        const { text: t, confidence } = (await worker.recognize(await g.clone().png().toBuffer())).data;
+        const score = confidence + (findStudentCode(t) ? 100 : 0);
+        if (score > best) { best = score; gray = g; first = t; }
+        if (deg === 0 && score > 160) break;
+      }
+      const passes: string[] = [first];
       for (const t of [120, 140])
         passes.push((await worker.recognize(await gray.clone().normalise().threshold(t).png().toBuffer())).data.text);
       let text = passes.join("\n");
