@@ -29,6 +29,7 @@ export function findStudentCode(text: string): string | null {
     if (digits.length === 6) score += 1;
     if (!best || score > best.score) best = { code: prefix + digits, score };
   }
-  return best && best.score >= 4 ? best.code : null;
+  // Without a real campus + school prefix it's a misread, not a code.
+  return best && best.score >= 4 && CAMPUS.includes(best.code[0]) && SCHOOL.includes(best.code[1]) ? best.code : null;
 }
 

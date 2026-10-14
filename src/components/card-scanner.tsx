@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { XIcon } from "./icons";
 
-// ISO ID-1 card ratio (85.6 x 54 mm), the shape of the FPT student card.
-const RATIO = 1.586;
+// ISO ID-1 card (85.6 x 54 mm) stood upright: the FPT student card is
+// printed portrait, and a landscape frame made students hold it sideways at
+// half the size.
+const RATIO = 54 / 85.6;
 
 // Auto-capture like a QR scan: sample the framed area a few times a second
 // and snap when a bright, card-sized rectangle has held still. A card that
@@ -15,8 +17,8 @@ const RATIO = 1.586;
 const TICK_MS = 250;
 const HITS_FAST = 4;
 const HITS_SLOW = 8;
-const GRID_W = 48;
-const GRID_H = 30;
+const GRID_W = 30;
+const GRID_H = 48;
 
 // Maps the on-screen frame back to video pixels (video is object-cover).
 function frameRect(v: HTMLVideoElement, f: HTMLDivElement) {
@@ -122,10 +124,10 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
       }
       prev = grid;
       // Fast: bright card standing out from a darker surround, held steady.
-      const fast = innerBright > 0.5 && innerBright - ringBright > 0.12 && diff < 10;
+      const fast = innerBright > 0.5 && innerBright - ringBright > 0.12 && diff < 6;
       // Slow: bright and steady for longer — covers a card that overflows the
       // frame or lies on a bright desk, where the edge test can't work.
-      const slow = innerBright > 0.45 && diff < 16;
+      const slow = innerBright > 0.45 && diff < 8;
       hitsFast = fast ? hitsFast + 1 : 0;
       hitsSlow = slow ? hitsSlow + 1 : 0;
       if (hitsFast >= HITS_FAST || hitsSlow >= HITS_SLOW) {
@@ -144,7 +146,7 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
         <div className="absolute inset-0 grid place-items-center px-5">
           <div
             ref={frame}
-            className="relative w-full max-w-xl overflow-hidden rounded-xl shadow-[0_0_0_100vmax_oklch(0_0_0/0.55)] ring-2 ring-white/90"
+            className="relative h-[min(58vh,calc((100vw-2.5rem)*1.586))] max-w-full overflow-hidden rounded-xl shadow-[0_0_0_100vmax_oklch(0_0_0/0.55)] ring-2 ring-white/90"
             style={{ aspectRatio: RATIO }}
           >
             {/* QR-style corner brackets */}
@@ -155,8 +157,8 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
             {!error && <span aria-hidden className="scan-line absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent" />}
           </div>
         </div>
-        <p className="absolute inset-x-0 top-6 px-6 text-center text-sm font-medium">
-          {error ?? "Đặt mặt trước thẻ vào trong khung. Thẻ sẽ được chụp tự động."}
+        <p className="absolute inset-x-0 top-6 px-16 text-center text-sm font-medium">
+          {error ?? "Đặt thẻ đứng thẳng trong khung, nơi đủ sáng, rồi giữ yên."}
         </p>
         <button type="button" onClick={onClose} aria-label="Đóng quét thẻ" className="absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-white/15 transition-colors hover:bg-white/25">
           <XIcon />
