@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { LISTINGS_TAG } from "@/lib/queries";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, idDocuments, listings, reports } from "@/lib/schema";
@@ -29,6 +30,7 @@ export async function setBanned(userId: string, banned: boolean) {
   const me = await requireAdmin();
   if (me.id === userId) return;
   await db.update(users).set({ bannedAt: banned ? new Date() : null }).where(eq(users.id, userId));
+  revalidateTag(LISTINGS_TAG);
   revalidatePath("/admin/users");
 }
 
@@ -36,6 +38,7 @@ export async function removeListing(listingId: string, reportId?: string) {
   await requireAdmin();
   await db.update(listings).set({ status: "removed" }).where(eq(listings.id, listingId));
   if (reportId) await db.update(reports).set({ status: "resolved" }).where(eq(reports.id, reportId));
+  revalidateTag(LISTINGS_TAG);
   revalidatePath("/admin/reports");
   revalidatePath("/market");
 }

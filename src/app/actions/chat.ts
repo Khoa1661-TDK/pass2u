@@ -1,7 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { LISTINGS_TAG } from "@/lib/queries";
 import { and, eq, inArray, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { conversations, listings, messages, reservations } from "@/lib/schema";
@@ -87,6 +88,7 @@ export async function reservationStep(conversationId: string, step: Step) {
     if (r.status === "accepted") await setL("available");
     await post(c.id, u.id, "đã hủy giữ", "event");
   }
+  revalidateTag(LISTINGS_TAG);
   revalidatePath(`/inbox/${c.id}`);
   revalidatePath(`/listings/${l.id}`);
 }

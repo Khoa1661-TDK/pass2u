@@ -1,12 +1,13 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 import { getUser, gateFor } from "@/lib/session";
 import { db } from "@/lib/db";
 import { listings, users } from "@/lib/schema";
-import { searchListings } from "@/lib/queries";
+import { searchListings, LISTINGS_TAG } from "@/lib/queries";
 import { CATEGORIES } from "@/lib/constants";
 import { Logo } from "@/components/logo";
 import { ListingGrid } from "@/components/listing-card";
@@ -50,7 +51,7 @@ const HERO_IMG = unsplash("1673878034060-2d97a101563a").replace("w=480&h=480", "
 
 const QUICK = ["Giáo trình", "Quạt", "Áo đồng phục", "Máy tính Casio"];
 
-async function categoryCounts() {
+async function queryCategoryCounts() {
   const rows = await db
     .select({
       category: listings.category,
@@ -64,6 +65,8 @@ async function categoryCounts() {
     .groupBy(listings.category);
   return Object.fromEntries(rows.map((r) => [r.category, r]));
 }
+
+const categoryCounts = unstable_cache(queryCategoryCounts, ["category-counts"], { tags: [LISTINGS_TAG], revalidate: 60 });
 
 export default async function Landing() {
   const u = await getUser();
@@ -161,6 +164,7 @@ export default async function Landing() {
                 <li key={c.value} style={{ "--i": i } as React.CSSProperties} className="shrink-0">
                   <Link
                     href={`/market?category=${c.value}`}
+                    prefetch={u ? true : undefined}
                     className="group block w-36 rounded-lg active:scale-[0.98] transition-transform duration-200 ease-[var(--ease-out)] sm:w-auto"
                   >
                     <span className="relative block aspect-square overflow-hidden rounded-lg bg-sunken ring-1 ring-line">

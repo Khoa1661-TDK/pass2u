@@ -281,6 +281,13 @@
     border-color: var(--color-ink);
     color: var(--color-bg);
   }
+  /* Pressed and waiting for results: look selected right away. */
+  .chip:has([data-pending]) {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-bg);
+    opacity: 0.8;
+  }
   .chip:active {
     transform: scale(0.97);
   }

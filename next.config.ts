@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "8mb" },
+    // Reuse a page the browser loaded in the last 30 s instead of asking
+    // the server again (switching back and forth between filters).
+    staleTimes: { dynamic: 30 },
   },
   // Card OCR runs on the server: keep tesseract unbundled and ship its model.
   serverExternalPackages: ["tesseract.js"],
