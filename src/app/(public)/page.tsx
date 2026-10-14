@@ -88,7 +88,7 @@ export default async function Landing() {
           <div className="col-start-1 sm:col-start-2"><Logo /></div>
           <nav className="flex items-center justify-end gap-5 text-xs font-semibold uppercase tracking-[0.14em]">
             <Link href="/login" className="text-ink-2 transition-colors hover:text-ink">Đăng nhập</Link>
-            <Link href="/signup" className="rounded-sm bg-ink px-3.5 py-2 text-bg transition-opacity hover:opacity-85">Tham gia</Link>
+            <Link href="/signup" className="rounded-sm bg-ink px-3.5 py-2 text-bg transition-opacity hover:opacity-85">Đăng ký</Link>
           </nav>
         </header>
 
@@ -241,7 +241,7 @@ export default async function Landing() {
         {/* Compact CTA */}
         <section className="reveal mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
           <div className="flex flex-col items-start justify-between gap-5 rounded-lg bg-ink px-6 py-7 text-bg sm:flex-row sm:items-center sm:px-8">
-            <p className="max-w-[30ch] font-serif text-[1.75rem] leading-tight">Dọn phòng ký túc xá, hay mới chuyển đến? Tham gia chỉ trong hai phút.</p>
+            <p className="max-w-[30ch] font-serif text-[1.75rem] leading-tight">Dọn phòng ký túc xá, hay mới chuyển đến? Đăng ký chỉ trong hai phút.</p>
             <div className="flex shrink-0 gap-2">
               <Link href="/signup" className="btn-editorial btn-editorial-accent group">
                 Tạo tài khoản
