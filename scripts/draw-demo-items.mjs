@@ -1,6 +1,6 @@
 // Draws the demo listing photos into public/demo/*.webp.
-// Stock photos rarely show what an FPT student actually sells (FPT and
-// Vovinam uniforms, course books), so every demo item is drawn here instead.
+// Only for FPT-specific items no free photo shows (PE kit, course books);
+// everything else uses real photos (see scripts/demo-listings.mts).
 // Run: node scripts/draw-demo-items.mjs
 import sharp from "sharp";
 import { mkdir } from "node:fs/promises";
@@ -50,16 +50,6 @@ ${fpt ? `<g transform="translate(290 860) scale(0.8)">${fptLogo(0, 0)}</g>` : ""
 const items = {
   // ── Uniforms ───────────────────────────────────────────────────────────
   // fpt-polo.webp is a real photo Khoa supplied, not drawn here.
-  "fpt-jacket": scene("#eef1f4", "#dde3ea", `${shadow(450, 985, 320)}
-<path d="M340 200 L250 240 L150 560 L135 900 L215 905 L240 600 L275 470 L275 950 Q450 980 625 950 L625 470 L660 600 L685 905 L765 900 L750 560 L650 240 L560 200 Q450 250 340 200Z" fill="#1f3b63"/>
-<path d="M340 200 L250 240 L150 560 L135 900 L215 905 L240 600 L275 470 L275 950 Q450 980 625 950 L625 470 L660 600 L685 905 L765 900 L750 560 L650 240 L560 200 Q450 250 340 200Z" fill="url(#fold)"/>
-<path d="M275 470 L275 600 L625 600 L625 470 L560 520 L450 540 L340 520Z" fill="#f36f21"/>
-<path d="M340 200 Q450 250 560 200 L560 150 Q450 185 340 150Z" fill="#17304f"/>
-<line x1="450" y1="190" x2="450" y2="955" stroke="#c7cfd8" stroke-width="6"/><rect x="442" y="200" width="16" height="30" rx="3" fill="#c7cfd8"/>
-<path d="M300 760 L390 760 M510 760 L600 760" stroke="#17304f" stroke-width="8" stroke-linecap="round"/>
-<path d="M135 870 L215 875 M765 870 L685 875" stroke="#f36f21" stroke-width="14"/>
-${fptBadge(478, 300)}`, "Áo khoác gió đồng phục FPT"),
-
   "fpt-pe": scene("#f1f5ef", "#dfe8da", `${shadow(450, 990, 300)}
 <g transform="translate(0 -20)">
 <path d="M345 150 L265 180 L160 280 L230 355 L290 310 L290 640 Q450 665 610 640 L610 310 L670 355 L740 280 L635 180 L555 150 Q450 215 345 150Z" fill="#fff" stroke="#d8dcd5" stroke-width="3"/>
@@ -70,23 +60,6 @@ ${fptLogo(392, 250)}</g>
 <path d="M300 690 L600 690 L630 960 L470 960 L450 820 L430 960 L270 960Z" fill="#1f3b63"/>
 <path d="M300 690 L600 690 L602 715 L298 715Z" fill="#17304f"/>
 <path d="M285 820 L270 960 L300 960 L312 820Z M615 820 L630 960 L600 960 L588 820Z" fill="#f36f21"/>`, "Đồng phục thể dục FPT · size L"),
-
-  // Vovinam: blue võ phục with a crossed collar and the blue level-one belt.
-  "vovinam": scene("#eef2f8", "#d9e2ef", `${shadow(450, 990, 310)}
-<path d="M330 190 L230 230 L110 520 L200 560 L285 380 L285 950 Q450 975 615 950 L615 380 L700 560 L790 520 L670 230 L570 190 L450 420Z" fill="#2350a8"/>
-<path d="M330 190 L230 230 L110 520 L200 560 L285 380 L285 950 Q450 975 615 950 L615 380 L700 560 L790 520 L670 230 L570 190 L450 420Z" fill="url(#fold)"/>
-<path d="M330 190 L450 420 L470 400 L355 182Z" fill="#1a3f87"/>
-<path d="M570 190 L420 470 L420 520 L600 196Z" fill="#2a5cbf"/>
-<path d="M570 190 L420 470" stroke="#183a7c" stroke-width="18" stroke-linecap="round"/>
-<path d="M330 190 L450 420" stroke="#183a7c" stroke-width="18" stroke-linecap="round"/>
-<path d="M110 520 L200 560 L207 543 L118 503Z M790 520 L700 560 L693 543 L782 503Z" fill="#183a7c"/>
-<rect x="285" y="640" width="330" height="54" fill="#3b78e7"/>
-<rect x="285" y="640" width="330" height="54" fill="url(#gloss)"/>
-<path d="M440 694 L400 860 L438 864 L462 700Z M470 694 L520 850 L556 840 L494 690Z" fill="#3b78e7"/>
-<rect x="418" y="626" width="70" height="82" rx="10" fill="#2f6ad6"/>
-<circle cx="560" cy="300" r="34" fill="#f2c94c"/><circle cx="560" cy="300" r="22" fill="#d6352b"/>
-<text x="560" y="307" text-anchor="middle" font-family="${FONT}" font-weight="800" font-size="16" fill="#f2c94c">VVN</text>
-<text x="450" y="800" text-anchor="middle" font-family="${FONT}" font-weight="800" font-size="30" fill="#fff" fill-opacity="0.9" letter-spacing="6">VOVINAM</text>`, "Võ phục Vovinam size M · kèm đai"),
 
   // ── Course books ───────────────────────────────────────────────────────
   "book-prf192": scene("#f3f0ea", "#e5dfd4", book({ cover: "#1e2a44", accent: "#f36f21", title: ["Programming", "with C"], sub: "Giáo trình môn Lập trình C", code: "PRF192" }), "Giáo trình PRF192 · Lập trình C"),
