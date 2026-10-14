@@ -5,7 +5,9 @@
 // Delete the demo user to remove them all.
 import type postgres from "postgres";
 
-const img = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&h=1125&q=75`;
+// Stock photo id, or a path under public/ for items no stock photo shows
+// (FPT's own uniforms are drawn in public/demo).
+const img = (id: string) => (id.startsWith("/") ? id : `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&h=1125&q=75`);
 
 const DESC_VI = "Tin đăng mẫu để minh họa cách PASS2U hoạt động. Món này không thực sự được bán.";
 
@@ -18,7 +20,7 @@ const ITEMS: readonly (readonly [string, string, string, string, number | null, 
   ["Bộ bút marker Tombow (demo)", "stationery", "new", "sell", 150_000, "1588014328249-1453571ccb27", "Hà Nội"],
   ["Giáo trình Giải tích 1 (demo)", "textbooks", "like_new", "sell", 55_000, "1495446815901-a7297e633e8d", "Hà Nội"],
   ["Đèn ngủ kê giường (demo)", "dorm", "good", "sell", 120_000, "1517862774645-dd398fbfaffa", "Hồ Chí Minh"],
-  ["Áo khoác gió đồng phục FPT (demo)", "clothing", "like_new", "exchange", null, "1543076447-215ad9ba6923", "Hà Nội"],
+  ["Áo khoác gió đồng phục FPT (demo)", "clothing", "like_new", "exchange", null, "/demo/fpt-jacket.webp", "Hà Nội"],
   ["Bàn phím cơ Keychron (demo)", "electronics", "good", "sell", 450_000, "1598428452014-264f8ff1b174", "Hồ Chí Minh"],
   ["Kệ sách 3 tầng (demo)", "other", "good", "sell", 800_000, "1593173945705-d6451ed5909a", "Hà Nội"],
   ["Quạt đứng KDK (demo)", "dorm", "good", "free", null, "1601084195907-44baaa49dabd", "Hà Nội"],
@@ -26,7 +28,7 @@ const ITEMS: readonly (readonly [string, string, string, string, number | null, 
   ["Sách Lập trình Python nhập môn (demo)", "textbooks", "like_new", "sell", 130_000, "1694180846894-38a13c8ec9db", "Hà Nội"],
   ["Sạc dự phòng 20.000 mAh (demo)", "electronics", "new", "sell", 180_000, "1564286026321-4e3ad4d6022d", "Cần Thơ"],
   ["Tủ vải 3 ngăn (demo)", "dorm", "good", "sell", 120_000, "1753369232904-a8a888319d28", "Hồ Chí Minh"],
-  ["Đồng phục thể dục size L (demo)", "clothing", "like_new", "free", null, "1602810320073-1230c46d89d4", "Đà Nẵng"],
+  ["Đồng phục thể dục FPT size L (demo)", "clothing", "like_new", "free", null, "/demo/fpt-pe.webp", "Đà Nẵng"],
   ["Bộ bút chì màu 48 ô (demo)", "stationery", "good", "sell", 90_000, "1557154683-264bf969e849", "Hà Nội"],
   ["Thảm yoga TPE (demo)", "other", "like_new", "sell", 150_000, "1646239646963-b0b9be56d6b5", "Hà Nội"],
   ["Balo chống nước 30L (demo)", "other", "new", "sell", 250_000, "1707903074794-e35472388c44", "Hà Nội"],
@@ -41,7 +43,7 @@ const ITEMS: readonly (readonly [string, string, string, string, number | null, 
   ["Máy tính cầm tay Casio fx-580VN X (demo)", "electronics", "good", "sell", 250_000, "1637239990694-ba96d4b80acc", "Hà Nội"],
   ["Đèn bàn ký túc xá (demo)", "dorm", "good", "free", null, "1507473885765-e6ed057f782c", "Hà Nội"],
   ["Bộ chăn ga gối đơn (demo)", "dorm", "good", "sell", 90_000, "1505693416388-ac5ce068fe85", "Hà Nội"],
-  ["Áo đồng phục FPT size M (demo)", "clothing", "like_new", "exchange", null, "1633008004535-b255bab275cc", "Hà Nội"],
+  ["Áo polo đồng phục FPT size M (demo)", "clothing", "like_new", "exchange", null, "/demo/fpt-polo.webp", "Hà Nội"],
   ["Bộ vở và bút (demo)", "stationery", "new", "sell", 40_000, "1717079556888-c23cb91b450f", "Hà Nội"],
 ];
 
