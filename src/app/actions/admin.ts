@@ -12,7 +12,8 @@ const retention = () => new Date(Date.now() + ID_RETENTION_DAYS * 864e5);
 export async function approveStudent(userId: string) {
   await requireAdmin();
   await db.update(users).set({ verificationStatus: "approved", verifiedAt: new Date(), rejectionReason: null }).where(eq(users.id, userId));
-  await db.update(idDocuments).set({ deleteAfter: retention() }).where(eq(idDocuments.userId, userId));
+  // An approved card stays on the account; only rejected photos expire.
+  await db.update(idDocuments).set({ deleteAfter: null }).where(eq(idDocuments.userId, userId));
   revalidatePath("/admin");
 }
 

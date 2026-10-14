@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users, emailTokens, idDocuments } from "@/lib/schema";
+import { codeTaken, CODE_TAKEN } from "@/lib/code-taken";
 import { createSession, destroySession, getUser, gateFor } from "@/lib/session";
 import { sendEmail } from "@/lib/email";
 import { checkImage } from "@/lib/storage";
@@ -62,6 +63,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
 
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
   if (exists) return { error: "Email này đã có tài khoản. Hãy đăng nhập.", fields };
+  if (await codeTaken(studentCode)) return { error: CODE_TAKEN, fields };
 
   // The student card is presented at sign-up, not as a later step.
   const file = fd.get("idCard");

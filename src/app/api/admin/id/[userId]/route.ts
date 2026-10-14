@@ -5,8 +5,9 @@ import { getUser } from "@/lib/session";
 
 export async function GET(_: Request, { params }: { params: Promise<{ userId: string }> }) {
   const me = await getUser();
-  if (!me || me.role !== "admin") return new Response("Không có quyền truy cập", { status: 403 });
   const { userId } = await params;
+  // Admins see any card; a student sees only their own.
+  if (!me || (me.role !== "admin" && me.id !== userId)) return new Response("Không có quyền truy cập", { status: 403 });
   if (!/^[0-9a-f-]{36}$/.test(userId)) return new Response("Không tìm thấy", { status: 404 });
   const [doc] = await db.select().from(idDocuments).where(eq(idDocuments.userId, userId));
   if (!doc) return new Response("Không tìm thấy", { status: 404 });

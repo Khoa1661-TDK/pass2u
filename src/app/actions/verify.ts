@@ -7,6 +7,7 @@ import { users, idDocuments } from "@/lib/schema";
 import { requireUser } from "@/lib/session";
 import { checkImage } from "@/lib/storage";
 import { checkCard } from "@/lib/card-check";
+import { codeTaken, CODE_TAKEN } from "@/lib/code-taken";
 import { studentFieldsSchema } from "@/lib/validation";
 import type { FormState } from "./auth";
 
@@ -20,6 +21,8 @@ export async function submitVerification(_: FormState, fd: FormData): Promise<Fo
   const fields = { studentCode: String(fd.get("studentCode") ?? ""), campus: String(fd.get("campus") ?? "") };
   const parsed = schema.safeParse(fields);
   if (!parsed.success) return { error: parsed.error.issues[0].message, fields };
+
+  if (await codeTaken(parsed.data.studentCode, u.id)) return { error: CODE_TAKEN, fields };
 
   const file = fd.get("idCard");
   if (!(file instanceof File) || file.size === 0) return { error: "Thêm ảnh mặt trước thẻ sinh viên của bạn.", fields };

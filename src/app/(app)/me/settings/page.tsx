@@ -17,6 +17,14 @@ export default async function Settings() {
         <div className="flex justify-between py-3"><dt className="text-ink-3">Ngày sinh</dt><dd>{u.birthDate ?? "Chưa có"}</dd></div>
         <div className="flex justify-between py-3"><dt className="text-ink-3">Duyệt thẻ</dt><dd className="font-medium text-ok">{u.role === "admin" ? "Quản trị" : "Đã duyệt"}</dd></div>
       </dl>
+      {u.role !== "admin" && (
+        <section className="mt-10">
+          <h2 className="text-lg font-semibold">Thẻ sinh viên của bạn</h2>
+          <p className="mt-1 text-sm text-ink-3">Chỉ bạn và quản trị viên xem được ảnh này.</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={`/api/admin/id/${u.id}`} alt="Ảnh thẻ sinh viên của bạn" className="mt-4 max-h-96 w-auto max-w-full rounded-xl border border-line" />
+        </section>
+      )}
     </div>
   );
 }

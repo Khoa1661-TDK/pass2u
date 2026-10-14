@@ -18,6 +18,9 @@ console.log("[migrate] schema up to date");
 // Sports and vehicle categories were dropped; fold their listings into Other.
 await sql`update listings set category = 'other' where category in ('sports', 'vehicles')`;
 
+// Approved students keep their card photo on the account.
+await sql`update id_documents set delete_after = null where user_id in (select id from users where verification_status = 'approved')`;
+
 const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
 if (ADMIN_EMAIL && ADMIN_PASSWORD) {
   const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);

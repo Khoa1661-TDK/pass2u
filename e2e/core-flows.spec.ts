@@ -1,10 +1,20 @@
 import { test, expect, type Page, type Browser, type BrowserContext } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import postgres from "postgres";
 
 const LOG = process.env.NEXT_LOG ?? "next.log";
 const fx = (f: string) => path.join(__dirname, "fixtures", f);
 const run = Date.now().toString(36);
+
+// One card, one account: earlier runs' test accounts still hold the fixture
+// cards' codes, so release them (test accounts only) before signing up again.
+const dbUrl = process.env.DATABASE_URL ?? readFileSync(".env.local", "utf8").match(/^DATABASE_URL=(.*)$/m)?.[1]?.replace(/^"|"$/g, "");
+async function releaseCode(code: string) {
+  const sql = postgres(dbUrl!, { max: 1, onnotice: () => {} });
+  await sql`update users set verification_status = 'rejected' where student_code = ${code} and email like '%@example.com'`;
+  await sql.end();
+}
 
 async function confirmLinkFor(email: string) {
   for (let i = 0; i < 20; i++) {
@@ -41,6 +51,7 @@ async function fillSignup(page: Page, name: string, email: string) {
 // The student ID is presented during sign-up now: code, campus, and card photo.
 // The name must match the name printed on the fixture card, so emails carry the tag.
 async function signUp(browser: Browser, name: string, code: string, card: string, tag = "") {
+  await releaseCode(code);
   const page = await newPage(browser);
   const email = `${name.split(" ")[0].toLowerCase()}.${run}${tag}@example.com`;
   await fillSignup(page, name, email);
@@ -250,4 +261,17 @@ test("server rejects a card that doesn't match or isn't an FPT card", async ({ b
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
   await expect(page.getByText("Đây không giống thẻ sinh viên Đại học FPT")).toBeVisible({ timeout: 60_000 });
   await expect(page).toHaveURL(/signup/);
+});
+
+test("one student card makes only one account", async ({ browser }) => {
+  test.setTimeout(120_000);
+  // The main flow already holds HE190002 with an approved account.
+  const page = await newPage(browser);
+  await fillSignup(page, "Minh Tran", `minh.${run}dup@example.com`);
+  await page.getByLabel("Cơ sở").selectOption("Hà Nội");
+  await page.locator('input[name="idCard"]').setInputFiles(fx("card-minh.png"));
+  await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 60_000 });
+  await page.getByLabel("Mã sinh viên").fill("HE190002");
+  await page.getByRole("button", { name: "Tạo tài khoản" }).click();
+  await expect(page.getByText("Mã sinh viên này đã được dùng cho một tài khoản khác")).toBeVisible({ timeout: 60_000 });
 });

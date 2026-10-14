@@ -143,7 +143,7 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
             )}
             <p className="mt-2 text-sm text-ink-3">
               Tải lên {timeAgo(doc.uploadedAt)}.{" "}
-              {doc.deleteAfter ? `Ảnh sẽ bị xóa ${timeAgo(doc.deleteAfter)}.` : `Ảnh bị xóa ${ID_RETENTION_DAYS} ngày sau khi có quyết định.`}
+              {doc.deleteAfter ? `Ảnh sẽ bị xóa ${timeAgo(doc.deleteAfter)}.` : u.verificationStatus === "approved" ? "Ảnh thẻ được lưu cùng tài khoản." : `Nếu bị từ chối, ảnh bị xóa sau ${ID_RETENTION_DAYS} ngày.`}
             </p>
           </>
         ) : (
