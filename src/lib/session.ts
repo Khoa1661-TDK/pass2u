@@ -29,21 +29,23 @@ export async function destroySession() {
   (await cookies()).delete(COOKIE);
 }
 
-export async function verifyToken(token: string | undefined) {
+async function verifyToken(token: string | undefined) {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, key());
-    return payload.sub ?? null;
+    return payload.sub ? { id: payload.sub, issuedAt: payload.iat ?? 0 } : null;
   } catch {
     return null;
   }
 }
 
 export const getUser = cache(async (): Promise<User | null> => {
-  const id = await verifyToken((await cookies()).get(COOKIE)?.value);
-  if (!id) return null;
-  const [u] = await db.select().from(users).where(eq(users.id, id));
+  const s = await verifyToken((await cookies()).get(COOKIE)?.value);
+  if (!s) return null;
+  const [u] = await db.select().from(users).where(eq(users.id, s.id));
   if (!u || u.bannedAt) return null;
+  // A password change signs out every session issued before it.
+  if (u.passwordChangedAt && s.issuedAt < Math.floor(u.passwordChangedAt.getTime() / 1000)) return null;
   return u;
 });
 

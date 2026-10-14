@@ -6,10 +6,11 @@ import { createHash, randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, emailTokens, idDocuments } from "@/lib/schema";
+import { users, emailTokens, idDocuments, passwordResets } from "@/lib/schema";
 import { codeTaken, CODE_TAKEN } from "@/lib/code-taken";
 import { createSession, destroySession, getUser, gateFor } from "@/lib/session";
 import { sendEmail } from "@/lib/email";
+import { findReset } from "@/lib/password-reset";
 import { checkImage } from "@/lib/storage";
 import { checkCard } from "@/lib/card-check";
 import { studentFieldsSchema, identityFieldsSchema } from "@/lib/validation";
@@ -126,4 +127,63 @@ export async function confirmEmail(token: string) {
   await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, row.userId));
   await db.delete(emailTokens).where(eq(emailTokens.userId, row.userId));
   return true;
+}
+
+// Same reply whether or not the email has an account, so the form can't be
+// used to find out who is signed up.
+const RESET_SENT = "Nếu email này có tài khoản PASS2U, chúng tôi đã gửi liên kết đặt lại mật khẩu. Hãy kiểm tra hộp thư và thư mục spam.";
+
+export async function requestPasswordReset(_: FormState, fd: FormData): Promise<FormState> {
+  const email = String(fd.get("email") ?? "").trim().toLowerCase();
+  if (!z.string().email().safeParse(email).success) return { error: "Nhập email hợp lệ.", fields: { email } };
+  const [u] = await db.select().from(users).where(eq(users.email, email));
+  if (u && !u.bannedAt) {
+    const token = randomBytes(32).toString("base64url");
+    // Only the newest link works.
+    await db.delete(passwordResets).where(eq(passwordResets.userId, u.id));
+    await db.insert(passwordResets).values({ tokenHash: hash(token), userId: u.id, expiresAt: new Date(Date.now() + 1000 * 60 * 60) });
+    const link = `${process.env.APP_URL ?? "http://localhost:3000"}/reset?token=${token}`;
+    await sendEmail(
+      u.email,
+      "Đặt lại mật khẩu PASS2U",
+      `<p>Chào ${u.displayName.replace(/[<>&]/g, "")},</p><p>Có người (hy vọng là bạn) vừa yêu cầu đặt lại mật khẩu PASS2U:</p><p><a href="${link}">Đặt mật khẩu mới</a></p><p>Liên kết này hết hạn sau 1 giờ. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>`,
+      `Liên kết đặt lại mật khẩu: ${link}`,
+    );
+  }
+  return { ok: RESET_SENT, fields: { email } };
+}
+
+const newPasswordSchema = z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128);
+
+async function setPassword(userId: string, password: string) {
+  await db.update(users).set({ passwordHash: await bcrypt.hash(password, 10), passwordChangedAt: new Date() }).where(eq(users.id, userId));
+  await db.delete(passwordResets).where(eq(passwordResets.userId, userId));
+}
+
+export async function resetPassword(_: FormState, fd: FormData): Promise<FormState> {
+  const token = String(fd.get("token") ?? "");
+  const p = newPasswordSchema.safeParse(String(fd.get("password") ?? ""));
+  if (!p.success) return { error: p.error.issues[0].message };
+  const row = await findReset(token);
+  if (!row) return { error: "Liên kết này đã hết hạn hoặc đã được dùng. Hãy yêu cầu liên kết mới." };
+  const [u] = await db.select().from(users).where(eq(users.id, row.userId));
+  if (!u || u.bannedAt) return { error: "Tài khoản này đã bị khóa. Hãy liên hệ đội ngũ PASS2U." };
+  await setPassword(u.id, p.data);
+  // The link reached their inbox, so the email is theirs.
+  if (!u.emailVerifiedAt) await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, u.id));
+  await createSession(u.id);
+  redirect(gateFor({ ...u, emailVerifiedAt: u.emailVerifiedAt ?? new Date() }) ?? "/market");
+}
+
+export async function changePassword(_: FormState, fd: FormData): Promise<FormState> {
+  const u = await getUser();
+  if (!u) redirect("/login");
+  const current = String(fd.get("currentPassword") ?? "");
+  if (!(await bcrypt.compare(current, u.passwordHash))) return { error: "Mật khẩu hiện tại không đúng." };
+  const p = newPasswordSchema.safeParse(String(fd.get("newPassword") ?? ""));
+  if (!p.success) return { error: p.error.issues[0].message };
+  await setPassword(u.id, p.data);
+  // Keep this device signed in; every other session is now signed out.
+  await createSession(u.id);
+  return { ok: "Đã đổi mật khẩu. Các thiết bị khác đã được đăng xuất." };
 }
