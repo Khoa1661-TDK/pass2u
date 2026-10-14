@@ -31,19 +31,7 @@ if (ADMIN_EMAIL && ADMIN_PASSWORD) {
   `;
   console.log(`[migrate] admin ready: ${ADMIN_EMAIL}`);
 }
-// A ready-made, approved student account for demos, so the marketplace can be
-// shown without a real card. SEED_DEMO=0 locks it (its password stops working).
-const DEMO_STUDENT = "sinhvien@pass2u.demo";
-if (process.env.SEED_DEMO !== "0") {
-  await seedDemoListings(sql);
-  const hash = await bcrypt.hash(process.env.DEMO_PASSWORD || "pass2u-demo", 10);
-  await sql`
-    insert into users (email, password_hash, display_name, campus, phone, residence, email_verified_at, verification_status, verified_at)
-    values (${DEMO_STUDENT}, ${hash}, 'Sinh viên Demo', 'Hà Nội', '0900000000', 'KTX FPT Hà Nội', now(), 'approved', now())
-    on conflict (email) do update set password_hash = excluded.password_hash
-  `;
-  console.log(`[migrate] demo student ready: ${DEMO_STUDENT}`);
-} else {
-  await sql`update users set password_hash = '!' where email = ${DEMO_STUDENT}`;
-}
+if (process.env.SEED_DEMO !== "0") await seedDemoListings(sql);
+// A demo student login was briefly seeded by preview builds; remove it.
+await sql`delete from users where email = 'sinhvien@pass2u.demo'`;
 await sql.end();
