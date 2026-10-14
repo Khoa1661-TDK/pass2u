@@ -27,7 +27,11 @@ export function StudentIdFields({ defaults }: { defaults: { studentCode: string;
       const { code, name } = await readCardInfo(file);
       // Sign-up has a name field on the same page; re-verify does not.
       const nameInput = document.getElementById("displayName") as HTMLInputElement | null;
-      if (name && nameInput && !nameInput.value.trim()) nameInput.value = titleCase(name);
+      // Fill the name if it's empty or still holds an earlier scan's guess;
+      // never overwrite what the student typed themselves.
+      if (name && nameInput && (!nameInput.value.trim() || nameInput.value === nameInput.dataset.scanned)) {
+        nameInput.value = nameInput.dataset.scanned = titleCase(name);
+      }
       const nameMismatch = !!name && !!nameInput?.value.trim() && !namesMatch(nameInput.value, name);
       if (code && codeRef.current) codeRef.current.value = code;
       if (code || name) setOcr({ state: "found", code: code ?? undefined, name: name ?? undefined, nameMismatch });

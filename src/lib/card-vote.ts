@@ -35,6 +35,13 @@ function tidy(name: string): string | null {
   return words.length >= 2 ? words.join(" ") : null;
 }
 
+// The common family names have one spelling, so the tone marks OCR keeps
+// dropping on the first word ("NGUYEN", "NGUYÊN") can be put back.
+const SURNAME: Record<string, string> = {
+  NGUYEN: "NGUYỄN", TRAN: "TRẦN", PHAM: "PHẠM", HOANG: "HOÀNG", HUYNH: "HUỲNH", PHAN: "PHAN",
+  VU: "VŨ", VO: "VÕ", DANG: "ĐẶNG", BUI: "BÙI", DO: "ĐỖ", NGO: "NGÔ", DUONG: "DƯƠNG", TRUONG: "TRƯƠNG",
+};
+
 // The name candidate that agrees most with the other passes, word by word.
 export function pickName(texts: string[]): string | null {
   const names = texts.map(findCardName).map((n) => (n ? tidy(n) : null)).filter((n): n is string => !!n);
@@ -51,5 +58,15 @@ export function pickName(texts: string[]): string | null {
     s += words.filter((w) => SYLLABLE.test(w)).length * 0.5 - words.filter((w) => !SYLLABLE.test(w)).length;
     if (s > score) { best = n; score = s; }
   }
-  return best;
+  if (!best) return null;
+  // Word by word, take the spelling most passes agree on; on a tie keep the
+  // one with tone marks ("NGUYỄN" over "NGUYEN"), which a plain pass drops.
+  const pool = names.flatMap((n) => n.split(/\s+/));
+  const marks = (w: string) => w.normalize("NFD").length - w.length;
+  return best.split(/\s+/).map((w, i) => {
+    if (i === 0 && SURNAME[plain(w).trim()]) return SURNAME[plain(w).trim()];
+    const same = pool.filter((o) => plain(o).trim() === plain(w).trim());
+    const count = (x: string) => same.filter((o) => o === x).length;
+    return same.reduce((a, b) => (count(b) > count(a) || (count(b) === count(a) && marks(b) > marks(a)) ? b : a), w);
+  }).join(" ");
 }
