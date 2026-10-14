@@ -21,21 +21,27 @@ async function prepare(img: Blob, cut?: number, turn = 0): Promise<HTMLCanvasEle
   c.width = Math.round(w0 * scale);
   c.height = Math.round(h0 * scale);
   const ctx = c.getContext("2d")!;
-  ctx.filter = "grayscale(1)";
   ctx.translate(c.width / 2, c.height / 2);
   ctx.rotate((turn * Math.PI) / 2);
   const dw = Math.round(bmp.width * scale), dh = Math.round(bmp.height * scale);
   ctx.drawImage(bmp, -dw / 2, -dh / 2, dw, dh);
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  if (cut == null) return c;
+  // Grayscale by hand: iOS Safari ignores ctx.filter, which left the photo in
+  // colour and the cut below reading only the red channel.
   const px = ctx.getImageData(0, 0, c.width, c.height);
   const d = px.data;
   let lo = 255, hi = 0;
-  for (let i = 0; i < d.length; i += 4) { lo = Math.min(lo, d[i]); hi = Math.max(hi, d[i]); }
-  const span = Math.max(1, hi - lo);
   for (let i = 0; i < d.length; i += 4) {
-    const v = ((d[i] - lo) * 255) / span >= cut ? 255 : 0;
+    const v = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
     d[i] = d[i + 1] = d[i + 2] = v;
+    lo = Math.min(lo, v); hi = Math.max(hi, v);
+  }
+  if (cut != null) {
+    const span = Math.max(1, hi - lo);
+    for (let i = 0; i < d.length; i += 4) {
+      const v = ((d[i] - lo) * 255) / span >= cut ? 255 : 0;
+      d[i] = d[i + 1] = d[i + 2] = v;
+    }
   }
   ctx.putImageData(px, 0, 0);
   return c;

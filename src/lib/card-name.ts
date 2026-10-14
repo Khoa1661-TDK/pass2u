@@ -14,6 +14,10 @@ function looksLikeName(line: string): string | null {
   if (findStudentCode(line)) return null;
   const tokens = line.split(/\s+/).filter(Boolean);
   const words = tokens.filter((w) => /[A-Za-zÀ-ỹ]/.test(w));
+  // Specks beside the name read as stray letters ("a NGUYEN ..."); drop them.
+  const short = (w: string) => w.replace(/[^A-Za-zÀ-ỹ]/g, "").length < 2;
+  while (words.length && short(words[0])) words.shift();
+  while (words.length && short(words[words.length - 1])) words.pop();
   if (words.length < 2 || words.length > 6) return null;
   let letters = 0, total = 0;
   for (const w of words) {
