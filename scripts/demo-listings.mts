@@ -5,46 +5,59 @@
 // Delete the demo user to remove them all.
 import type postgres from "postgres";
 
-// Stock photo id, or a path under public/ for items no stock photo shows
-// (FPT's own uniforms are drawn in public/demo).
-const img = (id: string) => (id.startsWith("/") ? id : `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&h=1125&q=75`);
+// Every cover is drawn by scripts/draw-demo-items.mjs into public/demo, so it
+// always shows the item the title names.
+const img = (key: string) => `/demo/${key}.webp`;
 
-const DESC_VI = "Tin đăng mẫu để minh họa cách PASS2U hoạt động. Món này không thực sự được bán.";
+const NOTE = "\n\nĐây là tin đăng mẫu để minh họa PASS2U, món này không thực sự được bán.";
 
-// Every photo was visually verified to show the item the title names.
-// title, category, condition, type, price, unsplash photo, campus
-const ITEMS: readonly (readonly [string, string, string, string, number | null, string, string])[] = [
-  // Newest first — the landing "Vừa đăng" strip shows the eight most recent.
-  ["Tai nghe Sony WH-1000XM4 (demo)", "electronics", "like_new", "sell", 3_500_000, "1583394838336-acd977736f90", "Hà Nội"],
-  ["Giày thể thao size 42 (demo)", "clothing", "good", "sell", 300_000, "1575176648002-f2021e56b375", "Hà Nội"],
-  ["Bộ bút marker Tombow (demo)", "stationery", "new", "sell", 150_000, "1588014328249-1453571ccb27", "Hà Nội"],
-  ["Giáo trình Giải tích 1 (demo)", "textbooks", "like_new", "sell", 55_000, "1495446815901-a7297e633e8d", "Hà Nội"],
-  ["Đèn ngủ kê giường (demo)", "dorm", "good", "sell", 120_000, "1517862774645-dd398fbfaffa", "Hồ Chí Minh"],
-  ["Áo khoác gió đồng phục FPT (demo)", "clothing", "like_new", "exchange", null, "/demo/fpt-jacket.webp", "Hà Nội"],
-  ["Bàn phím cơ Keychron (demo)", "electronics", "good", "sell", 450_000, "1598428452014-264f8ff1b174", "Hồ Chí Minh"],
-  ["Kệ sách 3 tầng (demo)", "other", "good", "sell", 800_000, "1593173945705-d6451ed5909a", "Hà Nội"],
-  ["Quạt đứng KDK (demo)", "dorm", "good", "free", null, "1601084195907-44baaa49dabd", "Hà Nội"],
-  ["Vở kẻ ngang bìa cứng, 10 cuốn (demo)", "stationery", "new", "sell", 35_000, "1717078279011-b0e9ae2a3a71", "Đà Nẵng"],
-  ["Sách Lập trình Python nhập môn (demo)", "textbooks", "like_new", "sell", 130_000, "1694180846894-38a13c8ec9db", "Hà Nội"],
-  ["Sạc dự phòng 20.000 mAh (demo)", "electronics", "new", "sell", 180_000, "1564286026321-4e3ad4d6022d", "Cần Thơ"],
-  ["Tủ vải 3 ngăn (demo)", "dorm", "good", "sell", 120_000, "1753369232904-a8a888319d28", "Hồ Chí Minh"],
-  ["Đồng phục thể dục FPT size L (demo)", "clothing", "like_new", "free", null, "/demo/fpt-pe.webp", "Đà Nẵng"],
-  ["Bộ bút chì màu 48 ô (demo)", "stationery", "good", "sell", 90_000, "1557154683-264bf969e849", "Hà Nội"],
-  ["Thảm yoga TPE (demo)", "other", "like_new", "sell", 150_000, "1646239646963-b0b9be56d6b5", "Hà Nội"],
-  ["Balo chống nước 30L (demo)", "other", "new", "sell", 250_000, "1707903074794-e35472388c44", "Hà Nội"],
-  ["Đèn LED dây phòng trọ (demo)", "other", "new", "sell", 60_000, "1616243850909-f010afe8de3a", "Hồ Chí Minh"],
-  ["Ấm đun nước 1,8L (demo)", "dorm", "good", "sell", 80_000, "1630617867674-3905ea203152", "Hà Nội"],
-  ["Nồi cơm điện mini 1,2 L (demo)", "dorm", "good", "sell", 250_000, "1599182345361-9542815e73f6", "Hồ Chí Minh"],
-  ["iPad Gen 9 64GB (demo)", "electronics", "like_new", "sell", 5_500_000, "1588593371666-e86e342fde78", "Hà Nội"],
-  // Original eight.
-  ["Giáo trình Toán rời rạc (demo)", "textbooks", "good", "sell", 60_000, "1512820790803-83ca734da794", "Hà Nội"],
-  ["Bộ sách tiếng Anh Summit 1 (demo)", "textbooks", "like_new", "sell", 120_000, "1585521607120-182732851afe", "Hà Nội"],
-  ["Giá đỡ laptop gỗ (demo)", "electronics", "like_new", "sell", 150_000, "1637580686082-317328e724d1", "Hà Nội"],
-  ["Máy tính cầm tay Casio fx-580VN X (demo)", "electronics", "good", "sell", 250_000, "1637239990694-ba96d4b80acc", "Hà Nội"],
-  ["Đèn bàn ký túc xá (demo)", "dorm", "good", "free", null, "1507473885765-e6ed057f782c", "Hà Nội"],
-  ["Bộ chăn ga gối đơn (demo)", "dorm", "good", "sell", 90_000, "1505693416388-ac5ce068fe85", "Hà Nội"],
-  ["Áo polo đồng phục FPT size M (demo)", "clothing", "like_new", "exchange", null, "/demo/fpt-polo.webp", "Hà Nội"],
-  ["Bộ vở và bút (demo)", "stationery", "new", "sell", 40_000, "1717079556888-c23cb91b450f", "Hà Nội"],
+type Item = {
+  title: string; category: string; condition: string; type: "sell" | "exchange" | "free";
+  price: number | null; photo: string; campus: string; desc: string; exchangeFor?: string;
+};
+
+// Newest first: the landing "Vừa đăng" strip shows the eight most recent.
+const ITEMS: readonly Item[] = [
+  { title: "Áo polo đồng phục FPT size M (demo)", category: "clothing", condition: "like_new", type: "sell", price: 90_000, photo: "fpt-polo", campus: "Hà Nội",
+    desc: "Mua ở phòng dịch vụ sinh viên hồi kỳ 1, mặc khoảng chục buổi. Không phai màu, không xù vải. Mình lên size L nên pass lại." },
+  { title: "Võ phục Vovinam size M kèm đai (demo)", category: "clothing", condition: "good", type: "sell", price: 150_000, photo: "vovinam", campus: "Hồ Chí Minh",
+    desc: "Bộ võ phục xanh mặc học môn Vovinam (VOV114) kỳ trước, kèm đai xanh. Đã giặt sạch, đường may chắc. Hợp người cao 1m65 đến 1m72." },
+  { title: "Giáo trình PRF192 Lập trình C (demo)", category: "textbooks", condition: "good", type: "sell", price: 40_000, photo: "book-prf192", campus: "Hà Nội",
+    desc: "Giáo trình môn PRF192, có highlight vài chương con trỏ và mảng. Kèm mấy tờ note đề PE cũ mình tự chép." },
+  { title: "Máy tính Casio fx-580VN X (demo)", category: "electronics", condition: "like_new", type: "sell", price: 380_000, photo: "casio", campus: "Đà Nẵng",
+    desc: "Dùng cho MAE101 và MAS291, còn nguyên nắp trượt, phím bấm êm. Được mang vào phòng thi." },
+  { title: "Bàn phím cơ Keychron K8 switch nâu (demo)", category: "electronics", condition: "good", type: "sell", price: 950_000, photo: "keyboard", campus: "Hồ Chí Minh",
+    desc: "TKL, kết nối Bluetooth và dây, switch Gateron nâu gõ êm, không ồn phòng ký túc. Pin còn tốt, có kèm dây Type-C." },
+  { title: "Áo khoác gió đồng phục FPT (demo)", category: "clothing", condition: "like_new", type: "exchange", price: null, photo: "fpt-jacket", campus: "Hà Nội",
+    desc: "Áo khoác gió size L, mặc vài lần mùa đông năm nhất. Chống gió tốt, khóa kéo còn trơn.", exchangeFor: "Áo khoác đồng phục FPT size M" },
+  { title: "Tai nghe Sony WH-1000XM4 (demo)", category: "electronics", condition: "good", type: "sell", price: 3_200_000, photo: "headphones", campus: "Hà Nội",
+    desc: "Chống ồn tốt, học thư viện rất ổn. Pin khoảng 25 tiếng, đệm tai đã thay mới. Kèm hộp và dây sạc." },
+  { title: "Nồi cơm điện mini 1,2 L (demo)", category: "dorm", condition: "good", type: "sell", price: 180_000, photo: "rice-cooker", campus: "Hồ Chí Minh",
+    desc: "Đủ cho 2 người ăn, lòng nồi chống dính chưa tróc. Mình ra trường nên dọn đồ phòng trọ." },
+  { title: "Đồng phục thể dục FPT size L (demo)", category: "clothing", condition: "good", type: "free", price: null, photo: "fpt-pe", campus: "Đà Nẵng",
+    desc: "Bộ áo quần thể dục đã học xong môn, cho lại bạn nào cần. Qua campus lấy trực tiếp." },
+  { title: "Màn hình Dell 24 inch Full HD (demo)", category: "electronics", condition: "good", type: "sell", price: 1_600_000, photo: "monitor", campus: "Hà Nội",
+    desc: "Dell P2419H, tấm nền IPS, có HDMI và DisplayPort. Không điểm chết, chân xoay được dọc. Code đồ án đỡ mỏi mắt hơn hẳn." },
+  { title: "Giáo trình tiếng Nhật JPD113 (demo)", category: "textbooks", condition: "like_new", type: "sell", price: 60_000, photo: "book-nihongo", campus: "Hồ Chí Minh",
+    desc: "Giáo trình môn JPD113, gần như mới, chưa viết vào. Kèm file nghe mình chia sẻ qua Drive." },
+  { title: "Bộ kit Arduino Uno R3 cho môn IOT102 (demo)", category: "electronics", condition: "good", type: "sell", price: 320_000, photo: "arduino", campus: "Đà Nẵng",
+    desc: "Đủ bo Uno R3, breadboard, dây cắm, LED, cảm biến nhiệt độ và siêu âm. Đã test chạy được. Đủ làm lab và project IOT102." },
+  { title: "Giá đỡ laptop nhôm gấp gọn (demo)", category: "electronics", condition: "like_new", type: "sell", price: 150_000, photo: "laptop-stand", campus: "Cần Thơ",
+    desc: "Nhôm nguyên khối, chỉnh được 6 nấc, gấp lại bỏ vừa balo. Chịu được laptop 17 inch." },
+  { title: "Quạt đứng KDK (demo)", category: "dorm", condition: "good", type: "free", price: null, photo: "fan", campus: "Hà Nội",
+    desc: "Quạt chạy êm, 3 tốc độ, có hẹn giờ. Mình chuyển phòng có điều hòa nên cho lại." },
+  { title: "Giáo trình MAE101 Toán cho kỹ thuật (demo)", category: "textbooks", condition: "good", type: "sell", price: 45_000, photo: "book-mae101", campus: "Quy Nhơn",
+    desc: "Sách môn MAE101, có ghi chú bút chì ở phần ma trận và tích phân, tẩy được. Bìa hơi cong góc." },
+  { title: "Balo laptop 15,6 inch chống nước (demo)", category: "other", condition: "like_new", type: "sell", price: 220_000, photo: "backpack", campus: "Hồ Chí Minh",
+    desc: "Ngăn laptop có đệm, vừa máy 15,6 inch. Vải chống nước, đi mưa không thấm. Dùng một học kỳ." },
+  { title: "Đèn bàn LED chống cận (demo)", category: "dorm", condition: "like_new", type: "sell", price: 120_000, photo: "lamp", campus: "Hà Nội",
+    desc: "3 chế độ màu ánh sáng, chỉnh độ sáng cảm ứng, cắm USB. Học đêm không chói mắt." },
+  { title: "Sách Clean Code bản tiếng Anh (demo)", category: "textbooks", condition: "good", type: "exchange", price: null, photo: "book-cleancode", campus: "Hà Nội",
+    desc: "Clean Code của Robert C. Martin, bản tiếng Anh. Đọc xong rồi, muốn đổi sang sách khác để đọc tiếp.", exchangeFor: "The Pragmatic Programmer hoặc sách về system design" },
+  { title: "Ấm siêu tốc 1,8 L (demo)", category: "dorm", condition: "good", type: "sell", price: 70_000, photo: "kettle", campus: "Đà Nẵng",
+    desc: "Inox, tự ngắt khi sôi. Pha mì, pha cà phê phòng ký túc. Đã tẩy cặn sạch." },
+  { title: "Mũ bảo hiểm 3/4 size L (demo)", category: "other", condition: "good", type: "sell", price: 120_000, photo: "helmet", campus: "Cần Thơ",
+    desc: "Mũ 3/4 có kính, quai chắc, lót trong tháo giặt được. Mình đổi sang mũ fullface." },
 ];
 
 export async function seedDemoListings(sql: postgres.Sql) {
@@ -55,22 +68,26 @@ export async function seedDemoListings(sql: postgres.Sql) {
       values ('demo@pass2u.local', '!', 'PASS2U Demo', 'Hà Nội', 'student', now(), 'approved', now())
       returning id`;
   // Titles were renamed across versions; drop demo rows no longer in the list.
-  const titles = ITEMS.map(([t]) => t);
+  const titles = ITEMS.map((it) => it.title);
   await sql`delete from listings where seller_id = ${u.id} and title <> all(${sql.array(titles)})`;
   let added = 0;
   for (let i = 0; i < ITEMS.length; i++) {
-    const [title, category, condition, type, price, photo, campus] = ITEMS[i];
+    const { title, category, condition, type, price, photo, campus, desc, exchangeFor } = ITEMS[i];
     const [l] = await sql`select id from listings where seller_id = ${u.id} and title = ${title}`;
     if (l) {
-      // Keep covers in sync with the verified photo mapping.
+      // Keep cover and text in sync with this file.
       await sql`update listing_images set url = ${img(photo)} where listing_id = ${l.id} and position = 0`;
+      await sql`
+        update listings set description = ${desc + NOTE}, category = ${category}, condition = ${condition},
+          type = ${type}, price = ${price}, exchange_for = ${exchangeFor ?? null}, campus = ${campus}
+        where id = ${l.id}`;
       continue;
     }
     // Stagger creation times so "Vừa đăng" reads like a live feed.
     const [n] = await sql`
       insert into listings (seller_id, title, description, category, condition, type, price, exchange_for, campus, created_at)
-      values (${u.id}, ${title}, ${DESC_VI},
-        ${category}, ${condition}, ${type}, ${price}, ${type === "exchange" ? "Đồng phục size L bất kỳ" : null},
+      values (${u.id}, ${title}, ${desc + NOTE},
+        ${category}, ${condition}, ${type}, ${price}, ${exchangeFor ?? null},
         ${campus}, now() - (${i} * interval '1 hour'))
       returning id`;
     await sql`insert into listing_images (listing_id, url, position) values (${n.id}, ${img(photo)}, 0)`;
