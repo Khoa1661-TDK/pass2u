@@ -43,10 +43,6 @@ export function SignupForm() {
         </div>
       </div>
       <div>
-        <label htmlFor="cccd" className="field-label">Số căn cước công dân</label>
-        <input id="cccd" name="cccd" inputMode="numeric" autoComplete="off" required maxLength={12} className="input" placeholder="12 chữ số" defaultValue={v.cccd} aria-describedby={err} />
-      </div>
-      <div>
         <label htmlFor="residence" className="field-label">Nơi bạn đang ở</label>
         <input id="residence" name="residence" autoComplete="off" required maxLength={120} className="input" placeholder="KTX, lớp, hoặc địa chỉ đang ở" defaultValue={v.residence} aria-describedby={err} />
         <p className="field-hint">

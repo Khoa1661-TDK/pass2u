@@ -35,7 +35,6 @@ async function fillSignup(page: Page, name: string, email: string) {
   // Identity details are mandatory so admins can locate a student if needed.
   await page.getByLabel("Số điện thoại").fill("0912345678");
   await page.getByLabel("Ngày sinh").fill("2002-01-01");
-  await page.getByLabel("Số căn cước công dân").fill("079123456789");
   await page.getByLabel("Nơi bạn đang ở").fill("KTX FPT Hà Nội");
 }
 
@@ -189,7 +188,6 @@ test("admin opens a student record and approves from it", async ({ browser }) =>
   await expect(admin.getByText("SE180001", { exact: true })).toBeVisible();
   // The full identity dossier the student provided at sign-up.
   await expect(admin.getByText("0912345678", { exact: true })).toBeVisible();
-  await expect(admin.getByText("079123456789", { exact: true })).toBeVisible();
   await expect(admin.getByText("2002-01-01", { exact: true })).toBeVisible();
   await expect(admin.getByText("KTX FPT Hà Nội", { exact: true })).toBeVisible();
   await expect(admin.getByRole("img", { name: /Ảnh thẻ sinh viên do Lan Nguyen nộp/ })).toBeVisible();

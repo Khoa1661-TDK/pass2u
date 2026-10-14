@@ -14,7 +14,6 @@ export default async function Settings() {
       <dl className="mt-10 divide-y divide-line border-y border-line text-sm">
         <div className="flex justify-between py-3"><dt className="text-ink-3">Email</dt><dd>{u.email}</dd></div>
         <div className="flex justify-between py-3"><dt className="text-ink-3">Mã sinh viên</dt><dd>{u.studentCode ?? "Chưa có"}</dd></div>
-        <div className="flex justify-between py-3"><dt className="text-ink-3">Căn cước công dân</dt><dd className="font-mono">{u.cccd ?? "Chưa có"}</dd></div>
         <div className="flex justify-between py-3"><dt className="text-ink-3">Ngày sinh</dt><dd>{u.birthDate ?? "Chưa có"}</dd></div>
         <div className="flex justify-between py-3"><dt className="text-ink-3">Duyệt thẻ</dt><dd className="font-medium text-ok">{u.role === "admin" ? "Quản trị" : "Đã duyệt"}</dd></div>
       </dl>

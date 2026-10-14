@@ -12,7 +12,7 @@ export const studentFieldsSchema = z.object({
 });
 
 // Identity details collected at sign-up so admins can locate a student if a
-// transaction goes wrong. Phone, national ID, birth date and residence are
+// transaction goes wrong. Phone, birth date and residence are
 // required; cohort and major are optional helpers.
 export const identityFieldsSchema = z.object({
   phone: z
@@ -21,11 +21,6 @@ export const identityFieldsSchema = z.object({
     .transform((v) => v.replace(/[\s.-]/g, ""))
     .transform((v) => (v.startsWith("+84") ? `0${v.slice(3)}` : v.startsWith("84") ? `0${v.slice(2)}` : v))
     .refine((v) => /^0\d{9}$/.test(v), "Số điện thoại phải có 10 chữ số, ví dụ 0912345678."),
-  cccd: z
-    .string()
-    .trim()
-    .transform((v) => v.replace(/\s/g, ""))
-    .refine((v) => /^\d{12}$/.test(v), "Số căn cước công dân phải có 12 chữ số."),
   birthDate: z
     .string()
     .trim()

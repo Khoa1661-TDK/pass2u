@@ -38,7 +38,7 @@ export function SettingsForm({ defaults }: { defaults: { displayName: string; bi
         </div>
       </div>
       <p className="field-hint">
-        Số điện thoại và nơi ở chỉ quản trị viên xem được. Căn cước và ngày sinh không sửa được tại đây — nếu cần đổi, hãy liên hệ đội ngũ PASS2U.
+        Số điện thoại và nơi ở chỉ quản trị viên xem được. Ngày sinh không sửa được tại đây — nếu cần đổi, hãy liên hệ đội ngũ PASS2U.
       </p>
       <div>
         <label htmlFor="bio" className="field-label">Giới thiệu về bạn</label>

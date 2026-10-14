@@ -52,14 +52,13 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
     studentCode: raw.studentCode ?? "",
     campus: raw.campus ?? "",
     phone: raw.phone ?? "",
-    cccd: raw.cccd ?? "",
     birthDate: raw.birthDate ?? "",
     residence: raw.residence ?? "",
     cohort: raw.cohort ?? "",
     major: raw.major ?? "",
   };
   if (!parsed.success) return { error: parsed.error.issues[0].message, fields };
-  const { displayName, email, password, studentCode, campus, phone, cccd, birthDate, residence, cohort, major } = parsed.data;
+  const { displayName, email, password, studentCode, campus, phone, birthDate, residence, cohort, major } = parsed.data;
 
   const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
   if (exists) return { error: "Email này đã có tài khoản. Hãy đăng nhập.", fields };
@@ -82,7 +81,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   const ocr = card ?? { ocrCode: null, ocrNameMatch: null, ocrLooksFpt: null, ocrText: null };
   const [u] = await db
     .insert(users)
-    .values({ email, displayName, passwordHash: await bcrypt.hash(password, 10), studentCode, campus, phone, cccd, birthDate, residence, cohort, major, verificationStatus: "pending" })
+    .values({ email, displayName, passwordHash: await bcrypt.hash(password, 10), studentCode, campus, phone, birthDate, residence, cohort, major, verificationStatus: "pending" })
     .returning();
   await db.insert(idDocuments).values({ userId: u.id, image, mime: file.type, ...ocr });
   await sendConfirmation(u.id, u.email, u.displayName);
