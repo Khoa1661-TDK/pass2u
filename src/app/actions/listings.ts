@@ -2,7 +2,8 @@
 
 import { z } from "zod";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { LISTINGS_TAG } from "@/lib/queries";
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { listings, listingImages, reports } from "@/lib/schema";
@@ -67,6 +68,7 @@ export async function createListing(_: FormState, fd: FormData): Promise<FormSta
   const urls = await Promise.all(files.map(uploadListingImage));
   const [l] = await db.insert(listings).values({ ...parsed.data, sellerId: u.id, campus: u.campus }).returning();
   await db.insert(listingImages).values(urls.map((url, i) => ({ listingId: l.id, url, position: i })));
+  revalidateTag(LISTINGS_TAG);
   revalidatePath("/market");
   redirect(`/listings/${l.id}`);
 }
@@ -101,6 +103,7 @@ export async function updateListing(id: string, _: FormState, fd: FormData): Pro
     await db.insert(listingImages).values(urls.map((url, i) => ({ listingId: id, url, position: kept.length + i })));
 
   await db.update(listings).set({ ...parsed.data, updatedAt: new Date() }).where(eq(listings.id, id));
+  revalidateTag(LISTINGS_TAG);
   revalidatePath(`/listings/${id}`);
   redirect(`/listings/${id}`);
 }
@@ -112,6 +115,7 @@ export async function deleteListing(id: string) {
   const imgs = await db.select().from(listingImages).where(eq(listingImages.listingId, id));
   await db.delete(listings).where(eq(listings.id, id));
   await deleteListingImages(imgs.map((i) => i.url));
+  revalidateTag(LISTINGS_TAG);
   revalidatePath("/market");
   redirect("/me");
 }
@@ -122,6 +126,7 @@ export async function setListingStatus(id: string, status: "available" | "reserv
     .update(listings)
     .set({ status, updatedAt: new Date() })
     .where(and(eq(listings.id, id), eq(listings.sellerId, u.id), inArray(listings.status, ["available", "reserved", "completed"])));
+  revalidateTag(LISTINGS_TAG);
   revalidatePath(`/listings/${id}`);
   revalidatePath("/me");
 }

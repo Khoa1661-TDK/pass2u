@@ -1,5 +1,6 @@
 import { requireApproved } from "@/lib/session";
 import { SettingsForm } from "./form";
+import { PasswordForm } from "./password";
 
 export const metadata = { title: "Cài đặt" };
 
@@ -17,6 +18,11 @@ export default async function Settings() {
         <div className="flex justify-between py-3"><dt className="text-ink-3">Ngày sinh</dt><dd>{u.birthDate ?? "Chưa có"}</dd></div>
         <div className="flex justify-between py-3"><dt className="text-ink-3">Duyệt thẻ</dt><dd className="font-medium text-ok">{u.role === "admin" ? "Quản trị" : "Đã duyệt"}</dd></div>
       </dl>
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">Mật khẩu</h2>
+        <p className="mt-1 text-sm text-ink-3">Đổi mật khẩu sẽ đăng xuất mọi thiết bị khác.</p>
+        <div className="mt-4"><PasswordForm /></div>
+      </section>
       {u.role !== "admin" && (
         <section className="mt-10">
           <h2 className="text-lg font-semibold">Thẻ sinh viên của bạn</h2>

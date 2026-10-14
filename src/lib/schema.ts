@@ -45,10 +45,20 @@ export const users = pgTable("users", {
   rejectionReason: text("rejection_reason"),
   verifiedAt: timestamp("verified_at", { withTimezone: true }),
   bannedAt: timestamp("banned_at", { withTimezone: true }),
+  // Sessions issued before this are signed out (see lib/session.ts).
+  passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const emailTokens = pgTable("email_tokens", {
+  tokenHash: text("token_hash").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+
+// "Forgot password" links. Separate from emailTokens so a reset link can't
+// confirm an email, and resending a confirmation can't cancel a reset.
+export const passwordResets = pgTable("password_resets", {
   tokenHash: text("token_hash").primaryKey(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),

@@ -1,4 +1,5 @@
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { and, asc, desc, eq, gte, ilike, inArray, lte, or, sql, type SQL } from "drizzle-orm";
 import { db } from "./db";
 import { listings, listingImages, users } from "./schema";
@@ -41,7 +42,7 @@ export type ListingCardData = {
 
 export const SEARCH_LIMIT = 48;
 
-export async function searchListings(f: ListingFilters, limit = SEARCH_LIMIT) {
+async function querySearch(f: ListingFilters, limit: number) {
   const where: SQL[] = [inArray(listings.status, ["available", "reserved"])];
   if (f.q?.trim()) {
     const term = `%${f.q.trim().replace(/[%_]/g, "\\$&")}%`;
@@ -75,4 +76,18 @@ export async function listingsBySeller(sellerId: string, statuses: ("available" 
     .from(listings)
     .where(and(eq(listings.sellerId, sellerId), inArray(listings.status, statuses)))
     .orderBy(desc(listings.updatedAt));
+}
+
+/** Listings change rarely; every write calls revalidateTag(LISTINGS_TAG). */
+export const LISTINGS_TAG = "listings";
+
+const cachedSearch = unstable_cache(querySearch, ["search-listings"], { tags: [LISTINGS_TAG], revalidate: 60 });
+
+// The same results for every signed-in student, so they're cached on the
+// server: a filter tap skips the database entirely.
+export async function searchListings(f: ListingFilters, limit = SEARCH_LIMIT): Promise<ListingCardData[]> {
+  const { q, category, type, condition, min, max, sort } = f;
+  const rows = await cachedSearch({ q, category, type, condition, min, max, sort }, limit);
+  // The cache stores JSON, so dates come back as strings.
+  return rows.map((r) => ({ ...r, createdAt: new Date(r.createdAt) }));
 }

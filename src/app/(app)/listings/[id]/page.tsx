@@ -25,18 +25,19 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   const me = await requireApproved();
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
-  const [row] = await db
-    .select({ l: listings, seller: { id: users.id, displayName: users.displayName, campus: users.campus, verificationStatus: users.verificationStatus, createdAt: users.createdAt } })
-    .from(listings)
-    .innerJoin(users, eq(users.id, listings.sellerId))
-    .where(eq(listings.id, id));
+  // One round trip to the database instead of three in a row.
+  const [[row], imgs, [existing]] = await Promise.all([
+    db
+      .select({ l: listings, seller: { id: users.id, displayName: users.displayName, campus: users.campus, verificationStatus: users.verificationStatus, createdAt: users.createdAt } })
+      .from(listings)
+      .innerJoin(users, eq(users.id, listings.sellerId))
+      .where(eq(listings.id, id)),
+    db.select().from(listingImages).where(eq(listingImages.listingId, id)).orderBy(asc(listingImages.position)),
+    db.select({ id: conversations.id }).from(conversations).where(and(eq(conversations.listingId, id), eq(conversations.buyerId, me.id))),
+  ]);
   if (!row || (row.l.status === "removed" && me.role !== "admin")) notFound();
   const { l, seller } = row;
-  const imgs = await db.select().from(listingImages).where(eq(listingImages.listingId, id)).orderBy(asc(listingImages.position));
   const mine = l.sellerId === me.id;
-  const [existing] = mine
-    ? []
-    : await db.select({ id: conversations.id }).from(conversations).where(and(eq(conversations.listingId, id), eq(conversations.buyerId, me.id)));
 
   return (
     <article className="grid gap-8 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] md:gap-12">

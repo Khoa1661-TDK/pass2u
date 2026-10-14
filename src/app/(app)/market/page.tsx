@@ -3,6 +3,7 @@ import { requireApproved } from "@/lib/session";
 import { searchListings, SEARCH_LIMIT, type ListingFilters } from "@/lib/queries";
 import { CATEGORIES, CONDITIONS, TYPES } from "@/lib/constants";
 import { ListingGrid } from "@/components/listing-card";
+import { ChipLink } from "@/components/chip-link";
 import { SearchIcon } from "@/components/icons";
 
 export const metadata = { title: "Khám phá" };
@@ -94,15 +95,15 @@ export default async function Market({ searchParams }: { searchParams: Promise<L
         </Link>
         <span aria-hidden className="mx-1 hidden h-5 w-px shrink-0 bg-line-strong md:block" />
         {[{ value: undefined, label: "Tất cả" }, ...TYPES].map((t) => (
-          <Link key={t.label} href={hrefWith({ type: t.value })} className="chip" aria-current={f.type === t.value || (!f.type && !t.value)}>
+          <ChipLink key={t.label} href={hrefWith({ type: t.value })} className="chip" aria-current={f.type === t.value || (!f.type && !t.value)}>
             {t.label}
-          </Link>
+          </ChipLink>
         ))}
         <span aria-hidden className="mx-1 h-5 w-px shrink-0 bg-line-strong" />
         {CATEGORIES.map((c) => (
-          <Link key={c.value} href={hrefWith({ category: f.category === c.value ? undefined : c.value })} className="chip" aria-current={f.category === c.value}>
+          <ChipLink key={c.value} href={hrefWith({ category: f.category === c.value ? undefined : c.value })} className="chip" aria-current={f.category === c.value}>
             {c.label}
-          </Link>
+          </ChipLink>
         ))}
       </nav>
 

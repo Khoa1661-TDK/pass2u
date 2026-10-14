@@ -1,12 +1,13 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 import { getUser, gateFor } from "@/lib/session";
 import { db } from "@/lib/db";
 import { listings, users } from "@/lib/schema";
-import { searchListings } from "@/lib/queries";
+import { searchListings, LISTINGS_TAG } from "@/lib/queries";
 import { CATEGORIES } from "@/lib/constants";
 import { Logo } from "@/components/logo";
 import { ListingGrid } from "@/components/listing-card";
@@ -50,7 +51,7 @@ const HERO_IMG = unsplash("1673878034060-2d97a101563a").replace("w=480&h=480", "
 
 const QUICK = ["Giáo trình", "Quạt", "Áo đồng phục", "Máy tính Casio"];
 
-async function categoryCounts() {
+async function queryCategoryCounts() {
   const rows = await db
     .select({
       category: listings.category,
@@ -64,6 +65,8 @@ async function categoryCounts() {
     .groupBy(listings.category);
   return Object.fromEntries(rows.map((r) => [r.category, r]));
 }
+
+const categoryCounts = unstable_cache(queryCategoryCounts, ["category-counts"], { tags: [LISTINGS_TAG], revalidate: 60 });
 
 export default async function Landing() {
   const u = await getUser();
@@ -88,7 +91,7 @@ export default async function Landing() {
           <div className="col-start-1 sm:col-start-2"><Logo /></div>
           <nav className="flex items-center justify-end gap-5 text-xs font-semibold uppercase tracking-[0.14em]">
             <Link href="/login" className="text-ink-2 transition-colors hover:text-ink">Đăng nhập</Link>
-            <Link href="/signup" className="rounded-sm bg-ink px-3.5 py-2 text-bg transition-opacity hover:opacity-85">Tham gia</Link>
+            <Link href="/signup" className="rounded-sm bg-ink px-3.5 py-2 text-bg transition-opacity hover:opacity-85">Đăng ký</Link>
           </nav>
         </header>
 
@@ -161,6 +164,7 @@ export default async function Landing() {
                 <li key={c.value} style={{ "--i": i } as React.CSSProperties} className="shrink-0">
                   <Link
                     href={`/market?category=${c.value}`}
+                    prefetch={u ? true : undefined}
                     className="group block w-36 rounded-lg active:scale-[0.98] transition-transform duration-200 ease-[var(--ease-out)] sm:w-auto"
                   >
                     <span className="relative block aspect-square overflow-hidden rounded-lg bg-sunken ring-1 ring-line">
@@ -241,7 +245,7 @@ export default async function Landing() {
         {/* Compact CTA */}
         <section className="reveal mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-24">
           <div className="flex flex-col items-start justify-between gap-5 rounded-lg bg-ink px-6 py-7 text-bg sm:flex-row sm:items-center sm:px-8">
-            <p className="max-w-[30ch] font-serif text-[1.75rem] leading-tight">Dọn phòng ký túc xá, hay mới chuyển đến? Tham gia chỉ trong hai phút.</p>
+            <p className="max-w-[30ch] font-serif text-[1.75rem] leading-tight">Dọn phòng ký túc xá, hay mới chuyển đến? Đăng ký chỉ trong hai phút.</p>
             <div className="flex shrink-0 gap-2">
               <Link href="/signup" className="btn-editorial btn-editorial-accent group">
                 Tạo tài khoản
