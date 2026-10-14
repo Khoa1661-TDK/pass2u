@@ -29,6 +29,8 @@ const ITEMS: readonly Item[] = [
     desc: "Casio có nắp trượt, phím bấm còn nhạy, màn hình rõ. Dùng tốt cho MAE101 và MAS291, được mang vào phòng thi." },
   { title: "Bàn phím cơ Keychron K2 switch đỏ (demo)", category: "electronics", condition: "good", type: "sell", price: 950_000, photo: "photo-1589578228447-e1a4e481c6c8", campus: "Hồ Chí Minh",
     desc: "Layout 75%, kết nối Bluetooth và dây, switch đỏ gõ nhẹ và êm, không ồn phòng ký túc. Pin còn tốt, kèm dây Type-C." },
+  { title: "Áo khoác gió FPT màu cam có mũ (demo)", category: "clothing", condition: "like_new", type: "exchange", price: null, photo: "fpt-jacket-photo", campus: "Hà Nội",
+    desc: "Áo khoác gió FPT màu cam, có mũ trùm tháo được, size L. Mặc vài lần mùa đông, chống gió tốt, khóa kéo còn trơn.", exchangeFor: "Áo khoác FPT size M" },
   { title: "Tai nghe Sony chụp tai màu đen (demo)", category: "electronics", condition: "good", type: "sell", price: 3_200_000, photo: "photo-1612858249816-5a91a9fb9886", campus: "Hà Nội",
     desc: "Tai nghe chụp tai Sony màu đen, bass chắc, đeo lâu không đau tai. Đệm tai còn êm, kèm dây sạc." },
   { title: "Nồi cơm điện (demo)", category: "dorm", condition: "good", type: "sell", price: 180_000, photo: "photo-1569641092045-f6ec23879aef", campus: "Hồ Chí Minh",
