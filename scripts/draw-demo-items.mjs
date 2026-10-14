@@ -49,17 +49,7 @@ ${fpt ? `<g transform="translate(290 860) scale(0.8)">${fptLogo(0, 0)}</g>` : ""
 
 const items = {
   // ── Uniforms ───────────────────────────────────────────────────────────
-  "fpt-polo": scene("#f4efe9", "#e7ddd2", `${shadow(450, 975, 300)}
-<path d="M330 215 L245 250 L120 380 L205 470 L275 410 L275 940 Q450 975 625 940 L625 410 L695 470 L780 380 L655 250 L570 215 Q450 290 330 215Z" fill="#f36f21"/>
-<path d="M330 215 L245 250 L120 380 L205 470 L275 410 L275 940 Q450 975 625 940 L625 410 L695 470 L780 380 L655 250 L570 215 Q450 290 330 215Z" fill="url(#fold)"/>
-<path d="M120 380 L205 470 L218 456 L134 366Z" fill="#1d2a3a"/><path d="M780 380 L695 470 L682 456 L766 366Z" fill="#1d2a3a"/>
-<path d="M330 215 Q450 290 570 215 L545 200 Q450 255 355 200Z" fill="#1d2a3a"/>
-<path d="M330 215 L395 330 L450 268 Z" fill="#ff8a45"/><path d="M570 215 L505 330 L450 268 Z" fill="#e2601a"/>
-<rect x="436" y="268" width="28" height="140" fill="#e86619"/>
-<circle cx="450" cy="300" r="7" fill="#fff"/><circle cx="450" cy="345" r="7" fill="#fff"/><circle cx="450" cy="390" r="7" fill="#fff"/>
-${fptBadge(500, 370)}
-<path d="M275 930 Q450 965 625 930" stroke="#c9541a" stroke-width="6" fill="none"/>`, "Áo polo đồng phục FPT · size M"),
-
+  // fpt-polo.webp is a real photo Khoa supplied, not drawn here.
   "fpt-jacket": scene("#eef1f4", "#dde3ea", `${shadow(450, 985, 320)}
 <path d="M340 200 L250 240 L150 560 L135 900 L215 905 L240 600 L275 470 L275 950 Q450 980 625 950 L625 470 L660 600 L685 905 L765 900 L750 560 L650 240 L560 200 Q450 250 340 200Z" fill="#1f3b63"/>
 <path d="M340 200 L250 240 L150 560 L135 900 L215 905 L240 600 L275 470 L275 950 Q450 980 625 950 L625 470 L660 600 L685 905 L765 900 L750 560 L650 240 L560 200 Q450 250 340 200Z" fill="url(#fold)"/>
