@@ -23,6 +23,8 @@ type Item = {
 const ITEMS: readonly Item[] = [
   { title: "Áo polo đồng phục FPT size M (demo)", category: "clothing", condition: "like_new", type: "sell", price: 90_000, photo: "fpt-polo", campus: "Hà Nội",
     desc: "Mua ở phòng dịch vụ sinh viên hồi kỳ 1, mặc khoảng chục buổi. Không phai màu, không xù vải. Mình lên size L nên pass lại." },
+  { title: "Võ phục Vovinam size M kèm đai (demo)", category: "clothing", condition: "good", type: "sell", price: 150_000, photo: "vovinam-photo", campus: "Hồ Chí Minh",
+    desc: "Bộ võ phục xanh mặc học môn Vovinam kỳ trước, kèm đai xanh thêu chữ Việt Võ Đạo. Đã giặt sạch, đường may chắc. Hợp người cao 1m65 đến 1m72." },
   { title: "Giáo trình PRF192 Lập trình C (demo)", category: "textbooks", condition: "good", type: "sell", price: 40_000, photo: "book-prf192", campus: "Hà Nội",
     desc: "Giáo trình môn PRF192, có highlight vài chương con trỏ và mảng. Kèm mấy tờ note đề PE cũ mình tự chép." },
   { title: "Máy tính khoa học Casio có nắp (demo)", category: "electronics", condition: "like_new", type: "sell", price: 380_000, photo: "photo-1757256137041-0aab889db199", campus: "Đà Nẵng",
