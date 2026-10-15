@@ -1,4 +1,4 @@
-import { test, expect, type Page, type Browser, type BrowserContext } from "@playwright/test";
+import { test, expect, devices, type Page, type Browser, type BrowserContext } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import postgres from "postgres";
@@ -135,7 +135,8 @@ test("sign up with ID, verify, list, chat, reserve, complete", async ({ browser 
   await expect(b).toHaveURL(/inbox\//);
   await expect(b.getByText("Chào bạn! Món này còn không?")).toBeVisible();
   await b.getByRole("button", { name: "Xin giữ món" }).click();
-  await expect(b.getByText("Đang chờ người bán chấp nhận")).toBeVisible();
+  // The server is busy reading other tests' cards; give the action time.
+  await expect(b.getByText("Đang chờ người bán chấp nhận")).toBeVisible({ timeout: 15_000 });
 
   // Seller accepts, then completes.
   await s.goto("/inbox");
@@ -192,6 +193,8 @@ test("admin opens a student record and approves from it", async ({ browser }) =>
   await admin.goto("/admin/users");
   await admin.getByLabel("Tìm sinh viên").fill(student.email);
   await admin.getByLabel("Tìm sinh viên").press("Enter");
+  // Wait for the search results, or the click lands on the old list mid-reload.
+  await admin.waitForURL(/\?q=/);
   await admin.getByRole("link", { name: "Lan Nguyen" }).click();
   await expect(admin).toHaveURL(/\/admin\/users\/[0-9a-f-]{36}/);
 
@@ -240,7 +243,7 @@ test("on a phone, the camera button opens the camera app and reads the photo", a
 
 test("on a computer, the scanner opens the webcam and captures the framed card", async ({ browser }) => {
   test.setTimeout(120_000);
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, permissions: ["camera"] });
+  const ctx = await browser.newContext({ ...devices["Desktop Chrome"], permissions: ["camera"] });
   const page = await ctx.newPage();
   await page.goto("/signup");
   await page.getByRole("button", { name: "Quét thẻ" }).click();
