@@ -22,6 +22,16 @@ const HITS_SLOW = 8;
 const GRID_W = 30;
 const GRID_H = 48;
 const MARGIN = 0.06;
+// Wider for the still: its field of view can differ slightly from the video's.
+const STILL_MARGIN = 0.12;
+
+function toCanvas(src: CanvasImageSource, x: number, y: number, w: number, h: number) {
+  const c = document.createElement("canvas");
+  c.width = Math.round(w);
+  c.height = Math.round(h);
+  c.getContext("2d")!.drawImage(src, x, y, w, h, 0, 0, c.width, c.height);
+  return c;
+}
 const BURST = 3;
 const BURST_GAP_MS = 120;
 
@@ -62,6 +72,7 @@ function frameRect(v: HTMLVideoElement, f: HTMLDivElement) {
 export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) => void; onClose: () => void }) {
   const video = useRef<HTMLVideoElement>(null);
   const frame = useRef<HTMLDivElement>(null);
+  const track = useRef<MediaStreamTrack | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<"looking" | "reading" | "hint">("looking");
 
@@ -73,8 +84,8 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
         stream = s;
         if (video.current) video.current.srcObject = s;
         // Keep refocusing as the card moves closer; not every browser has it.
-        const track = s.getVideoTracks()[0];
-        track?.applyConstraints({ advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet] }).catch(() => {});
+        track.current = s.getVideoTracks()[0] ?? null;
+        track.current?.applyConstraints({ advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet] }).catch(() => {});
       })
       .catch(() => setError("Không mở được camera của bạn. Hãy cho phép truy cập camera, hoặc chọn ảnh thay thế."));
     if (!navigator.mediaDevices) setError("Trình duyệt này không mở được camera. Hãy chọn ảnh thay thế.");
@@ -117,8 +128,33 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
     return best;
   }
 
-  function finish(c: HTMLCanvasElement) {
-    c.toBlob((b) => b && onCapture(new File([b], "student-card.jpg", { type: "image/jpeg" })), "image/jpeg", 0.95);
+  // A full-resolution still from the camera, cropped to the frame, where the
+  // browser can take one (Chrome on Android). It is the same picture the
+  // camera app would save, so it reads as well as picking a photo; a video
+  // frame has a fraction of the pixels. iPhones fall back to the video frame,
+  // which they deliver at up to 4K.
+  async function still(): Promise<HTMLCanvasElement | null> {
+    const v = video.current, f = frame.current, t = track.current;
+    if (!v || !f || !t || typeof ImageCapture === "undefined") return null;
+    try {
+      const bmp = await createImageBitmap(await new ImageCapture(t).takePhoto());
+      // The still and the video can differ in orientation; then keep it whole.
+      if (bmp.width > bmp.height !== v.videoWidth > v.videoHeight) return toCanvas(bmp, 0, 0, bmp.width, bmp.height);
+      // The video shows the centre of what the sensor sees; map the frame across.
+      const k = Math.min(bmp.width / v.videoWidth, bmp.height / v.videoHeight);
+      const ox = (bmp.width - v.videoWidth * k) / 2, oy = (bmp.height - v.videoHeight * k) / 2;
+      const r = frameRect(v, f);
+      const mx = r.sw * STILL_MARGIN, my = r.sh * STILL_MARGIN;
+      const x = Math.max(0, ox + (r.sx - mx) * k), y = Math.max(0, oy + (r.sy - my) * k);
+      return toCanvas(bmp, x, y, Math.min(bmp.width - x, (r.sw + 2 * mx) * k), Math.min(bmp.height - y, (r.sh + 2 * my) * k));
+    } catch {
+      return null;
+    }
+  }
+
+  async function finish(c: HTMLCanvasElement) {
+    const best = (await still()) ?? c;
+    best.toBlob((b) => b && onCapture(new File([b], "student-card.jpg", { type: "image/jpeg" })), "image/jpeg", 0.95);
   }
 
   const busy = useRef(false);
@@ -126,7 +162,7 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
     if (busy.current) return;
     busy.current = true;
     const c = await sharpest();
-    if (c) finish(c);
+    if (c) await finish(c);
     else busy.current = false;
   }
 
@@ -260,7 +296,23 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
           title="Chụp ngay"
           className="size-18 rounded-full border-4 border-white bg-white/20 transition-transform active:scale-90 disabled:opacity-40"
         />
-        <p className="max-w-40 text-sm text-white/70">Chưa tự chụp được? Chạm vào đây.</p>
+        <div className="max-w-44 text-sm text-white/70">
+          <p>Chưa tự chụp được? Chạm vào nút chụp.</p>
+          {/* The phone's own camera app, for when the live view can't read the card. */}
+          <label className="mt-1 inline-block cursor-pointer font-semibold text-white underline underline-offset-4 focus-within:outline-2 focus-within:outline-white">
+            Dùng ứng dụng camera
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onCapture(file);
+              }}
+            />
+          </label>
+        </div>
       </div>
     </div>,
     document.body,
