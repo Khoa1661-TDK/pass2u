@@ -5,7 +5,8 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { users, idDocuments, listings } from "@/lib/schema";
 import { requireAdmin } from "@/lib/session";
-import { approveStudent, rejectStudent, setBanned } from "@/app/actions/admin";
+import { approveStudent, rejectStudent, setAdmin, setBanned } from "@/app/actions/admin";
+import { AdminPasswordForm } from "./admin-password";
 import { SubmitButton } from "@/components/ui";
 import { RefreshForm } from "@/components/refresh-form";
 import { Avatar } from "@/components/avatar";
@@ -58,7 +59,8 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
     .orderBy(desc(listings.createdAt));
   const active = rows.filter((r) => r.status === "available" || r.status === "reserved").length;
   const done = rows.filter((r) => r.status === "completed").length;
-  const manageable = u.role !== "admin" && u.id !== me.id;
+  const self = u.id === me.id;
+  const manageable = u.role !== "admin" && !self;
 
   return (
     <div>
@@ -120,6 +122,33 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
             <SubmitButton className={u.bannedAt ? "btn btn-secondary btn-sm" : "btn btn-danger btn-sm"}>{u.bannedAt ? "Mở khóa tài khoản" : "Khóa tài khoản"}</SubmitButton>
           </form>
         </div>
+      )}
+
+      {!self && (
+        <section className="mt-10 space-y-8 border-t border-line pt-8">
+          <div>
+            <h3 className="text-sm font-semibold text-ink">Quyền quản trị</h3>
+            <p className="mt-1 max-w-prose text-sm text-ink-2">
+              {u.role === "admin"
+                ? "Tài khoản này đang là quản trị viên: duyệt sinh viên, khóa tài khoản và gỡ tin đăng."
+                : "Quản trị viên có thể duyệt sinh viên, khóa tài khoản, gỡ tin đăng và cấp quyền cho người khác."}
+            </p>
+            <details className="mt-3">
+              <summary className={`btn btn-sm list-none ${u.role === "admin" ? "btn-danger" : "btn-secondary"}`}>
+                {u.role === "admin" ? "Gỡ quyền quản trị…" : "Cấp quyền quản trị…"}
+              </summary>
+              <RefreshForm action={setAdmin.bind(null, u.id, u.role !== "admin")} className="mt-3 flex flex-wrap items-center gap-3">
+                <span className="text-sm text-ink-2">{u.role === "admin" ? `${u.displayName} sẽ trở lại là sinh viên.` : `${u.displayName} sẽ có toàn quyền quản trị.`}</span>
+                <SubmitButton className={`btn btn-sm ${u.role === "admin" ? "btn-danger" : "btn-primary"}`} pending="Đang lưu…">Xác nhận</SubmitButton>
+              </RefreshForm>
+            </details>
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-ink">Đặt lại mật khẩu</h3>
+            <p className="mt-1 mb-3 max-w-prose text-sm text-ink-2">Dùng khi sinh viên quên mật khẩu mà không nhận được email đặt lại.</p>
+            <AdminPasswordForm userId={u.id} />
+          </div>
+        </section>
       )}
 
       <section className="mt-10">

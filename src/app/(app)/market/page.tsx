@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { requireApproved } from "@/lib/session";
-import { searchListings, SEARCH_LIMIT, type ListingFilters } from "@/lib/queries";
+import { countListings, listingPage, type ListingFilters } from "@/lib/queries";
 import { CATEGORIES, CONDITIONS, TYPES } from "@/lib/constants";
-import { ListingGrid } from "@/components/listing-card";
+import { InfiniteListings } from "@/components/infinite-listings";
 import { ChipLink } from "@/components/chip-link";
 import { SearchIcon } from "@/components/icons";
 
@@ -11,7 +11,7 @@ export const metadata = { title: "Khám phá" };
 export default async function Market({ searchParams }: { searchParams: Promise<ListingFilters & { focus?: string }> }) {
   await requireApproved();
   const f = await searchParams;
-  const items = await searchListings(f);
+  const [{ items, hasMore }, total] = await Promise.all([listingPage(f, 0), countListings(f)]);
   const filtered = Boolean(f.q || f.category || f.type || f.condition || f.min || f.max);
   const hrefWith = (patch: Partial<ListingFilters>) => {
     const p = new URLSearchParams();
@@ -29,7 +29,7 @@ export default async function Market({ searchParams }: { searchParams: Promise<L
           {f.q ? <>Kết quả cho &ldquo;{f.q}&rdquo;</> : filtered ? "Tin đăng đã lọc" : "Khám phá"}
         </h1>
         <p className="shrink-0 text-sm tabular-nums text-ink-3">
-          {items.length === 0 ? "Không tìm thấy" : `${items.length}${items.length === SEARCH_LIMIT ? "+" : ""} tin`}
+          {total === 0 ? "Không tìm thấy" : `${total} tin`}
         </p>
       </div>
 
@@ -109,7 +109,12 @@ export default async function Market({ searchParams }: { searchParams: Promise<L
 
       <div className="mt-6">
         {items.length ? (
-          <ListingGrid items={items} />
+          <InfiniteListings
+            key={JSON.stringify([f.q, f.category, f.type, f.condition, f.min, f.max, f.sort])}
+            initial={items}
+            hasMore={hasMore}
+            filters={{ q: f.q, category: f.category, type: f.type, condition: f.condition, min: f.min, max: f.max, sort: f.sort }}
+          />
         ) : (
           <div className="mx-auto max-w-sm py-16 text-center">
             <h2 className="text-lg font-semibold">{filtered ? "Không có tin khớp bộ lọc" : "Chưa có tin đăng nào"}</h2>

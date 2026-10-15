@@ -11,6 +11,7 @@ import { codeTaken, CODE_TAKEN } from "@/lib/code-taken";
 import { createSession, destroySession, getUser, gateFor } from "@/lib/session";
 import { sendEmail } from "@/lib/email";
 import { findReset } from "@/lib/password-reset";
+import { newPasswordSchema, setPassword } from "@/lib/set-password";
 import { checkImage } from "@/lib/storage";
 import { checkCard } from "@/lib/card-check";
 import { studentFieldsSchema, identityFieldsSchema } from "@/lib/validation";
@@ -153,12 +154,7 @@ export async function requestPasswordReset(_: FormState, fd: FormData): Promise<
   return { ok: RESET_SENT, fields: { email } };
 }
 
-const newPasswordSchema = z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự.").max(128);
 
-async function setPassword(userId: string, password: string) {
-  await db.update(users).set({ passwordHash: await bcrypt.hash(password, 10), passwordChangedAt: new Date() }).where(eq(users.id, userId));
-  await db.delete(passwordResets).where(eq(passwordResets.userId, userId));
-}
 
 export async function resetPassword(_: FormState, fd: FormData): Promise<FormState> {
   const token = String(fd.get("token") ?? "");

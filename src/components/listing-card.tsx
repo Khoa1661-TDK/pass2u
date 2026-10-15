@@ -2,7 +2,8 @@ import Link from "next/link";
 import { CONDITIONS, formatPrice, label } from "@/lib/constants";
 import type { ListingCardData } from "@/lib/queries";
 
-export function ListingCard({ l }: { l: ListingCardData }) {
+// The first row is on screen at once, so its photos load right away.
+export function ListingCard({ l, eager = false }: { l: ListingCardData; eager?: boolean }) {
   return (
     <Link href={`/listings/${l.id}`} className="group block rounded-lg outline-offset-4 transition-transform duration-200 ease-[var(--ease-out)] active:scale-[0.98] [@media(hover:hover)]:hover:-translate-y-1">
       <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-sunken transition-shadow duration-200 [@media(hover:hover)]:group-hover:shadow-[0_14px_30px_-16px_oklch(0.3_0.03_42/0.45)]">
@@ -11,7 +12,9 @@ export function ListingCard({ l }: { l: ListingCardData }) {
           <img
             src={l.cover}
             alt=""
-            loading="lazy"
+            loading={eager ? "eager" : "lazy"}
+            fetchPriority={eager ? "high" : "auto"}
+            decoding="async"
             className="size-full object-cover transition-transform duration-500 ease-[var(--ease-out)] [@media(hover:hover)]:group-hover:scale-[1.03]"
           />
         )}
@@ -37,7 +40,7 @@ export function ListingGrid({ items }: { items: ListingCardData[] }) {
     <div className="stagger grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 lg:grid-cols-4">
       {items.map((l, i) => (
         <div key={l.id} style={{ "--i": i } as React.CSSProperties}>
-          <ListingCard l={l} />
+          <ListingCard l={l} eager={i < 4} />
         </div>
       ))}
     </div>

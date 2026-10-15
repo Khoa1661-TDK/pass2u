@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { users, idDocuments, listings, reports } from "@/lib/schema";
 import { requireAdmin } from "@/lib/session";
 import { ID_RETENTION_DAYS } from "@/lib/constants";
+import { newPasswordSchema, setPassword } from "@/lib/set-password";
+import type { FormState } from "@/app/actions/auth";
 
 const retention = () => new Date(Date.now() + ID_RETENTION_DAYS * 864e5);
 
@@ -47,4 +49,24 @@ export async function dismissReport(reportId: string) {
   await requireAdmin();
   await db.update(reports).set({ status: "dismissed" }).where(eq(reports.id, reportId));
   revalidatePath("/admin/reports");
+}
+
+// Admins can't change their own role or reset their own password here, so
+// nobody locks themselves out; they use Cài đặt for their own password.
+export async function setAdmin(userId: string, makeAdmin: boolean) {
+  const me = await requireAdmin();
+  if (me.id === userId) return;
+  await db.update(users).set(makeAdmin ? { role: "admin", bannedAt: null } : { role: "student" }).where(eq(users.id, userId));
+  revalidatePath("/admin/users");
+}
+
+export async function adminSetPassword(userId: string, _: FormState, fd: FormData): Promise<FormState> {
+  const me = await requireAdmin();
+  if (me.id === userId) return { error: "Đổi mật khẩu của bạn trong Cài đặt." };
+  const p = newPasswordSchema.safeParse(String(fd.get("password") ?? ""));
+  if (!p.success) return { error: p.error.issues[0].message };
+  const [u] = await db.select({ id: users.id }).from(users).where(eq(users.id, userId));
+  if (!u) return { error: "Không tìm thấy tài khoản." };
+  await setPassword(userId, p.data);
+  return { ok: "Đã đặt mật khẩu mới. Tài khoản này đã bị đăng xuất khỏi mọi thiết bị." };
 }

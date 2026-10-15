@@ -38,32 +38,34 @@ export default async function Students({ searchParams }: { searchParams: Promise
         <label htmlFor="uq" className="sr-only">Tìm sinh viên</label>
         <input id="uq" name="q" defaultValue={q} placeholder="Tìm tên, email hoặc mã sinh viên" className="input" />
       </form>
-      <div className="mt-5 overflow-x-auto">
-        <table className="w-full min-w-[640px] text-left text-sm">
-          <thead className="border-b border-line text-ink-3">
-            <tr><th className="py-2 pr-4 font-medium">Tên</th><th className="py-2 pr-4 font-medium">Mã</th><th className="py-2 pr-4 font-medium">Email</th><th className="py-2 pr-4 font-medium">Trạng thái</th><th className="py-2" /></tr>
-          </thead>
-          <tbody className="divide-y divide-line">
-            {rows.map((u) => (
-              <tr key={u.id}>
-                <td className="py-3 pr-4"><Link href={`/admin/users/${u.id}`} className="font-medium hover:underline">{u.displayName}</Link>{u.role === "admin" && <span className="tag ml-2 bg-ink text-bg">Quản trị</span>}</td>
-                <td className="py-3 pr-4 font-mono">{u.studentCode ?? "Chưa có"}</td>
-                <td className="py-3 pr-4 text-ink-2">{u.email}{!u.emailVerifiedAt && <span className="text-ink-3"> (chưa xác nhận)</span>}</td>
-                <td className="py-3 pr-4">
-                  {u.bannedAt ? <span className="tag bg-danger text-on-danger">Đã khóa</span> : <span className={`tag ${statusTag[u.verificationStatus]}`}>{statusLabel[u.verificationStatus] ?? u.verificationStatus}</span>}
-                </td>
-                <td className="py-3 text-right">
-                  {u.id !== me.id && u.role !== "admin" && (
-                    <form action={setBanned.bind(null, u.id, !u.bannedAt)}>
-                      <SubmitButton className={u.bannedAt ? "btn btn-secondary btn-sm" : "btn btn-danger btn-sm"}>{u.bannedAt ? "Mở lại" : "Khóa"}</SubmitButton>
-                    </form>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* Rows stack on phones; a table's columns only fit from sm up. */}
+      <ul className="mt-5 divide-y divide-line border-y border-line text-sm">
+        <li aria-hidden className="hidden py-2 text-ink-3 sm:grid sm:grid-cols-[1.4fr_0.8fr_1.6fr_auto_4.5rem] sm:gap-4">
+          <span>Tên</span><span>Mã</span><span>Email</span><span>Trạng thái</span><span />
+        </li>
+        {rows.map((u) => (
+          <li key={u.id} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 py-3 sm:grid-cols-[1.4fr_0.8fr_1.6fr_auto_4.5rem]">
+            <div className="min-w-0">
+              <Link href={`/admin/users/${u.id}`} className="font-medium hover:underline">{u.displayName}</Link>
+              {u.role === "admin" && <span className="tag ml-2 bg-ink text-bg">Quản trị</span>}
+            </div>
+            <span className="col-start-1 row-start-2 font-mono text-ink-2 sm:col-start-auto sm:row-start-auto sm:text-ink">{u.studentCode ?? "Chưa có"}</span>
+            <span className="col-start-1 row-start-3 min-w-0 truncate text-ink-2 sm:col-start-auto sm:row-start-auto">
+              {u.email}{!u.emailVerifiedAt && <span className="text-ink-3"> (chưa xác nhận)</span>}
+            </span>
+            <span className="col-start-2 row-start-1 justify-self-end sm:col-start-auto sm:row-start-auto sm:justify-self-start">
+              {u.bannedAt ? <span className="tag bg-danger text-on-danger">Đã khóa</span> : <span className={`tag ${statusTag[u.verificationStatus]}`}>{statusLabel[u.verificationStatus] ?? u.verificationStatus}</span>}
+            </span>
+            <div className="col-start-2 row-span-2 row-start-2 justify-self-end sm:col-start-auto sm:row-span-1 sm:row-start-auto">
+              {u.id !== me.id && u.role !== "admin" && (
+                <form action={setBanned.bind(null, u.id, !u.bannedAt)}>
+                  <SubmitButton className={u.bannedAt ? "btn btn-secondary btn-sm" : "btn btn-danger btn-sm"}>{u.bannedAt ? "Mở lại" : "Khóa"}</SubmitButton>
+                </form>
+              )}
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

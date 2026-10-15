@@ -40,9 +40,10 @@ export type ListingCardData = {
   cover: string | null;
 };
 
-export const SEARCH_LIMIT = 48;
+/** Market results load this many at a time as you scroll. */
+export const PAGE_SIZE = 12;
 
-async function querySearch(f: ListingFilters, limit: number) {
+function searchWhere(f: ListingFilters) {
   const where: SQL[] = [inArray(listings.status, ["available", "reserved"])];
   if (f.q?.trim()) {
     const term = `%${f.q.trim().replace(/[%_]/g, "\\$&")}%`;
@@ -55,7 +56,10 @@ async function querySearch(f: ListingFilters, limit: number) {
   const min = Number(f.min), max = Number(f.max);
   if (f.min && Number.isFinite(min)) where.push(gte(listings.price, min));
   if (f.max && Number.isFinite(max)) where.push(lte(listings.price, max));
+  return and(...where, sql`${users.bannedAt} is null`);
+}
 
+async function querySearch(f: ListingFilters, limit: number, offset = 0) {
   const order =
     f.sort === "price_asc" ? [asc(sql`coalesce(${listings.price}, 0)`)] :
     f.sort === "price_desc" ? [desc(sql`coalesce(${listings.price}, 0)`)] :
@@ -65,9 +69,19 @@ async function querySearch(f: ListingFilters, limit: number) {
     .select(listingCardFields)
     .from(listings)
     .innerJoin(users, eq(users.id, listings.sellerId))
-    .where(and(...where, sql`${users.bannedAt} is null`))
+    .where(searchWhere(f))
     .orderBy(...order, desc(listings.id))
-    .limit(limit);
+    .limit(limit)
+    .offset(offset);
+}
+
+async function queryCount(f: ListingFilters) {
+  const [r] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(listings)
+    .innerJoin(users, eq(users.id, listings.sellerId))
+    .where(searchWhere(f));
+  return r.n;
 }
 
 export async function listingsBySeller(sellerId: string, statuses: ("available" | "reserved" | "completed")[]) {
@@ -82,12 +96,24 @@ export async function listingsBySeller(sellerId: string, statuses: ("available" 
 export const LISTINGS_TAG = "listings";
 
 const cachedSearch = unstable_cache(querySearch, ["search-listings"], { tags: [LISTINGS_TAG], revalidate: 60 });
+const cachedCount = unstable_cache(queryCount, ["count-listings"], { tags: [LISTINGS_TAG], revalidate: 60 });
+
+const pick = ({ q, category, type, condition, min, max, sort }: ListingFilters): ListingFilters => ({ q, category, type, condition, min, max, sort });
 
 // The same results for every signed-in student, so they're cached on the
 // server: a filter tap skips the database entirely.
-export async function searchListings(f: ListingFilters, limit = SEARCH_LIMIT): Promise<ListingCardData[]> {
-  const { q, category, type, condition, min, max, sort } = f;
-  const rows = await cachedSearch({ q, category, type, condition, min, max, sort }, limit);
+export async function searchListings(f: ListingFilters, limit = PAGE_SIZE, offset = 0): Promise<ListingCardData[]> {
+  const rows = await cachedSearch(pick(f), limit, offset);
   // The cache stores JSON, so dates come back as strings.
   return rows.map((r) => ({ ...r, createdAt: new Date(r.createdAt) }));
+}
+
+export async function countListings(f: ListingFilters): Promise<number> {
+  return cachedCount({ ...pick(f), sort: undefined });
+}
+
+/** One page of results, plus whether another page follows. */
+export async function listingPage(f: ListingFilters, offset: number) {
+  const rows = await searchListings(f, PAGE_SIZE + 1, offset);
+  return { items: rows.slice(0, PAGE_SIZE), hasMore: rows.length > PAGE_SIZE };
 }
