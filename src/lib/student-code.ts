@@ -15,8 +15,10 @@ const CANDIDATE = /([A-Z0-9]{2})[\s.\-:]?([0-9OQDUILTZSBG]{6,7})(?![0-9])/g;
 
 export function findStudentCode(text: string): string | null {
   const flat = text.toUpperCase().replace(/[^A-Z0-9\n.\-:\s]/g, " ");
+  // Small camera text often reads with a gap inside the digits ("DS210 580").
+  const joined = flat.replace(/(\d) (?=\d)/g, "$1");
   let best: { code: string; score: number } | null = null;
-  for (const m of flat.matchAll(CANDIDATE)) {
+  for (const m of [...flat.matchAll(CANDIDATE), ...joined.matchAll(CANDIDATE)]) {
     const prefix = m[1].split("").map((c) => (/[0-9]/.test(c) ? TO_LETTER[c] ?? c : c)).join("");
     if (!/^[A-Z]{2}$/.test(prefix)) continue;
     const digits = m[2].replace(/[^0-9]/g, (c) => TO_DIGIT[c] ?? c);

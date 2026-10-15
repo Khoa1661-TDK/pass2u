@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { XIcon } from "./icons";
+import { getReader, quickCode } from "@/lib/read-student-code";
 
 // ISO ID-1 card (85.6 x 54 mm) stood upright: the FPT student card is
 // printed portrait, and a landscape frame made students hold it sideways at
@@ -10,15 +11,38 @@ import { XIcon } from "./icons";
 const RATIO = 54 / 85.6;
 
 // Auto-capture like a QR scan: sample the framed area a few times a second
-// and snap when a bright, card-sized rectangle has held still. A card that
-// clearly stands out from its surroundings snaps in ~1s; a card that fills the
-// frame or sits on a bright desk snaps in ~2s (its edges can't be measured,
-// so we rely on "bright + steady" alone).
+// until a bright, card-sized rectangle has held still. Then, before snapping,
+// take the sharpest of a few frames and check that the student code actually
+// reads on it; a blurred or glary frame is skipped and scanning carries on.
+// Snapping on brightness alone caught frames mid-focus that picking a photo
+// from the gallery never had.
 const TICK_MS = 250;
 const HITS_FAST = 4;
 const HITS_SLOW = 8;
 const GRID_W = 30;
 const GRID_H = 48;
+const MARGIN = 0.06;
+const BURST = 3;
+const BURST_GAP_MS = 120;
+
+// Variance of the Laplacian on a small grey copy: higher is sharper.
+function sharpness(src: HTMLCanvasElement): number {
+  const w = 240, h = Math.max(1, Math.round((240 * src.height) / src.width));
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d")!;
+  ctx.drawImage(src, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const g = new Float32Array(w * h);
+  for (let i = 0; i < g.length; i++) g[i] = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
+  let sum = 0, sq = 0, n = 0;
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = y * w + x;
+    const l = 4 * g[i] - g[i - 1] - g[i + 1] - g[i - w] - g[i + w];
+    sum += l; sq += l * l; n++;
+  }
+  return n ? sq / n - (sum / n) ** 2 : 0;
+}
 
 // Maps the on-screen frame back to video pixels (video is object-cover).
 function frameRect(v: HTMLVideoElement, f: HTMLDivElement) {
@@ -39,17 +63,23 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
   const video = useRef<HTMLVideoElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<"looking" | "reading" | "hint">("looking");
 
   useEffect(() => {
     let stream: MediaStream | undefined;
     navigator.mediaDevices
-      ?.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false })
+      ?.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 3840 }, height: { ideal: 2160 } }, audio: false })
       .then((s) => {
         stream = s;
         if (video.current) video.current.srcObject = s;
+        // Keep refocusing as the card moves closer; not every browser has it.
+        const track = s.getVideoTracks()[0];
+        track?.applyConstraints({ advanced: [{ focusMode: "continuous" } as MediaTrackConstraintSet] }).catch(() => {});
       })
       .catch(() => setError("Không mở được camera của bạn. Hãy cho phép truy cập camera, hoặc chọn ảnh thay thế."));
     if (!navigator.mediaDevices) setError("Trình duyệt này không mở được camera. Hãy chọn ảnh thay thế.");
+    // Load the reader while the student lines the card up.
+    getReader().catch(() => {});
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
     return () => {
@@ -58,15 +88,46 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
     };
   }, [onClose]);
 
-  function capture() {
+  // The framed area at full camera resolution, with a margin so a card held
+  // slightly off-centre isn't clipped.
+  function grab(): HTMLCanvasElement | null {
     const v = video.current, f = frame.current;
-    if (!v || !f || !v.videoWidth) return;
-    const { sx, sy, sw, sh } = frameRect(v, f);
+    if (!v || !f || !v.videoWidth) return null;
+    const r = frameRect(v, f);
+    const mx = r.sw * MARGIN, my = r.sh * MARGIN;
+    const sx = Math.max(0, r.sx - mx), sy = Math.max(0, r.sy - my);
+    const sw = Math.min(v.videoWidth - sx, r.sw + 2 * mx), sh = Math.min(v.videoHeight - sy, r.sh + 2 * my);
     const c = document.createElement("canvas");
     c.width = Math.round(sw);
     c.height = Math.round(sh);
     c.getContext("2d")!.drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
-    c.toBlob((b) => b && onCapture(new File([b], "student-card.jpg", { type: "image/jpeg" })), "image/jpeg", 0.92);
+    return c;
+  }
+
+  // A few frames a moment apart; the sharpest one wins.
+  async function sharpest(): Promise<HTMLCanvasElement | null> {
+    let best: HTMLCanvasElement | null = null, score = -1;
+    for (let i = 0; i < BURST; i++) {
+      if (i) await new Promise((r) => setTimeout(r, BURST_GAP_MS));
+      const c = grab();
+      if (!c) continue;
+      const s = sharpness(c);
+      if (s > score) { best = c; score = s; }
+    }
+    return best;
+  }
+
+  function finish(c: HTMLCanvasElement) {
+    c.toBlob((b) => b && onCapture(new File([b], "student-card.jpg", { type: "image/jpeg" })), "image/jpeg", 0.95);
+  }
+
+  const busy = useRef(false);
+  async function capture() {
+    if (busy.current) return;
+    busy.current = true;
+    const c = await sharpest();
+    if (c) finish(c);
+    else busy.current = false;
   }
 
   // Card detection: the framed area must be bright (the card is white/cream),
@@ -78,9 +139,26 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
     let hitsFast = 0;
     let hitsSlow = 0;
     let done = false;
+    let checking = false;
+    let misses = 0;
+    // Snap only once the code reads on the sharpest recent frame.
+    const confirm = async () => {
+      const c = await sharpest();
+      if (!c || done) return;
+      const code = await quickCode(c).catch(() => null);
+      if (done) return;
+      if (code) {
+        done = true;
+        busy.current = true;
+        finish(c);
+      } else {
+        misses++;
+        setStatus(misses >= 2 ? "hint" : "looking");
+      }
+    };
     const timer = setInterval(() => {
       const v = video.current, f = frame.current;
-      if (done || !v || !f || !v.videoWidth) return;
+      if (done || checking || !v || !f || !v.videoWidth) return;
       const { sx, sy, sw, sh } = frameRect(v, f);
       canvas.width = 160;
       canvas.height = Math.round((160 * v.videoHeight) / v.videoWidth);
@@ -130,12 +208,16 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
       const slow = innerBright > 0.45 && diff < 8;
       hitsFast = fast ? hitsFast + 1 : 0;
       hitsSlow = slow ? hitsSlow + 1 : 0;
-      if (hitsFast >= HITS_FAST || hitsSlow >= HITS_SLOW) {
-        done = true;
-        capture();
+      if ((hitsFast >= HITS_FAST || hitsSlow >= HITS_SLOW) && !checking && !busy.current) {
+        checking = true;
+        setStatus("reading");
+        confirm().finally(() => { checking = false; hitsFast = hitsSlow = 0; });
       }
     }, TICK_MS);
-    return () => clearInterval(timer);
+    return () => {
+      done = true;
+      clearInterval(timer);
+    };
   }, [error]);
 
   // Portal to <body>: animated page wrappers would otherwise trap position:fixed.
@@ -158,7 +240,12 @@ export function CardScanner({ onCapture, onClose }: { onCapture: (file: File) =>
           </div>
         </div>
         <p className="absolute inset-x-0 top-6 px-16 text-center text-sm font-medium">
-          {error ?? "Đặt thẻ đứng thẳng trong khung, nơi đủ sáng, rồi giữ yên."}
+          {error ??
+            (status === "reading"
+              ? "Đang đọc thẻ, giữ yên…"
+              : status === "hint"
+                ? "Chưa đọc được mã. Đưa thẻ gần hơn cho vừa khung và nghiêng nhẹ để tránh lóa đèn."
+                : "Đặt thẻ đứng thẳng trong khung, nơi đủ sáng, rồi giữ yên.")}
         </p>
         <button type="button" onClick={onClose} aria-label="Đóng quét thẻ" className="absolute right-3 top-3 grid size-11 place-items-center rounded-full bg-white/15 transition-colors hover:bg-white/25">
           <XIcon />

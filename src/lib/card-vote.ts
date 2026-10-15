@@ -62,14 +62,26 @@ export function pickName(texts: string[]): string | null {
     if (s > score) { best = n; score = s; }
   }
   if (!best) return null;
-  // Word by word, take the spelling most passes agree on; on a tie keep the
-  // one with tone marks ("NGUYỄN" over "NGUYEN"), which a plain pass drops.
-  const pool = names.flatMap((n) => n.split(/\s+/));
+  // Word by word, take the spelling most passes agree on, counting near
+  // misreads ("BUC" for "ĐỨC") as votes for the same word; on a tie keep the
+  // one with tone marks ("HOÀNG" over "HOANG"), which a plain pass drops.
+  const lists = names.map((n) => n.split(/\s+/));
   const marks = (w: string) => w.normalize("NFD").length - w.length;
-  return best.split(/\s+/).map((w, i) => {
+  const words = best.split(/\s+/);
+  // A trailing word most passes don't have is a speck read as letters.
+  const agreed = (w: string, i: number) => lists.filter((l) => l[i] && near(plain(l[i]).trim(), plain(w).trim())).length * 2 >= lists.length;
+  while (words.length > 2 && !agreed(words[words.length - 1], words.length - 1)) words.pop();
+  return words.map((w, i) => {
     if (i === 0 && SURNAME[plain(w).trim()]) return SURNAME[plain(w).trim()];
-    const same = pool.filter((o) => plain(o).trim() === plain(w).trim());
-    const count = (x: string) => same.filter((o) => o === x).length;
-    return same.reduce((a, b) => (count(b) > count(a) || (count(b) === count(a) && marks(b) > marks(a)) ? b : a), w);
+    // The same slot in other passes, if it looks like the same word.
+    const slot = lists.map((l) => l[i]).filter((o): o is string => !!o && near(plain(o).trim(), plain(w).trim()));
+    const votes = (x: string) => slot.filter((o) => plain(o).trim() === plain(x).trim()).length;
+    const exact = (x: string) => slot.filter((o) => o === x).length;
+    return slot.reduce((a, b) => {
+      if (votes(b) !== votes(a)) return votes(b) > votes(a) ? b : a;
+      // Same letters: a pass that kept tone marks beats one that dropped them.
+      if (!!marks(b) !== !!marks(a)) return marks(b) ? b : a;
+      return exact(b) > exact(a) ? b : a;
+    }, w);
   }).join(" ");
 }

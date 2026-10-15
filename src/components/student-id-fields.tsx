@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CAMPUSES } from "@/lib/constants";
 import { titleCase } from "@/lib/card-name";
 import { namesMatch } from "@/lib/name-match";
@@ -18,6 +18,15 @@ export function StudentIdFields({ defaults }: { defaults: { studentCode: string;
   const [campus, setCampus] = useState(defaults.campus);
   const [ocr, setOcr] = useState<Ocr | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Phones open their own camera app: full resolution and proper focus, the
+  // same quality as picking a photo, which reads far better than frames from
+  // an in-page video. Computers keep the live webcam scanner.
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const nav = navigator as Navigator & { userAgentData?: { mobile: boolean } };
+    // iPadOS reports itself as a Mac; touch points give it away.
+    setPhone(!!nav.userAgentData?.mobile || /Android|iPhone|iPad|iPod|Mobi/i.test(nav.userAgent) || (nav.platform === "MacIntel" && nav.maxTouchPoints > 1));
+  }, []);
   const codeRef = useRef<HTMLInputElement>(null);
 
   async function applyCard(file: File) {
@@ -75,7 +84,7 @@ export function StudentIdFields({ defaults }: { defaults: { studentCode: string;
           ) : (
             <span className="flex flex-col items-center gap-2 px-6 text-sm text-ink-2">
               <CameraIcon size={28} className="text-ink-3" />
-              Quét mặt trước thẻ, hoặc chọn ảnh
+              Chụp mặt trước thẻ, hoặc chọn ảnh
             </span>
           )}
           {ocr?.state === "reading" && (
@@ -86,10 +95,29 @@ export function StudentIdFields({ defaults }: { defaults: { studentCode: string;
           )}
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => setScanning(true)} className="btn btn-primary">
-            <CameraIcon size={18} />
-            {preview ? "Quét lại" : "Quét thẻ"}
-          </button>
+          {phone ? (
+            <label className="btn btn-primary cursor-pointer focus-within:outline-2 focus-within:outline-accent">
+              <CameraIcon size={18} />
+              {preview ? "Chụp lại" : "Chụp thẻ"}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                aria-label="Chụp thẻ bằng camera"
+                className="sr-only"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) takeScan(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          ) : (
+            <button type="button" onClick={() => setScanning(true)} className="btn btn-primary">
+              <CameraIcon size={18} />
+              {preview ? "Quét lại" : "Quét thẻ"}
+            </button>
+          )}
           <label className="btn btn-secondary cursor-pointer focus-within:outline-2 focus-within:outline-accent">
             Chọn ảnh
             <input

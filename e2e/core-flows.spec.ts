@@ -225,9 +225,23 @@ test("card reader fills the student code and name from a photo", async ({ browse
   await expect(page.getByLabel("Họ và tên")).toHaveValue("Ocrtest Lan");
 });
 
-test("scanner opens the camera and captures the framed card", async ({ browser }) => {
+test("on a phone, the camera button opens the camera app and reads the photo", async ({ browser }) => {
   test.setTimeout(120_000);
-  const page = await newPage(browser, true);
+  const page = await newPage(browser);
+  await page.goto("/signup");
+  const camera = page.getByLabel("Chụp thẻ bằng camera");
+  await expect(camera).toHaveAttribute("capture", "environment");
+  await camera.setInputFiles(fx("card-ocr.png"));
+  await expect(page.getByAltText("Xem trước thẻ sinh viên của bạn")).toBeVisible();
+  const files = await page.locator('input[name="idCard"]').evaluate((i) => (i as HTMLInputElement).files?.length);
+  expect(files).toBe(1);
+  await expect(page.getByLabel("Mã sinh viên")).toHaveValue("SE190123", { timeout: 60_000 });
+});
+
+test("on a computer, the scanner opens the webcam and captures the framed card", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, permissions: ["camera"] });
+  const page = await ctx.newPage();
   await page.goto("/signup");
   await page.getByRole("button", { name: "Quét thẻ" }).click();
   const dialog = page.getByRole("dialog", { name: "Quét thẻ sinh viên của bạn" });
