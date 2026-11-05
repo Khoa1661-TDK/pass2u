@@ -7,11 +7,6 @@ const nextConfig: NextConfig = {
     // the server again (switching back and forth between filters).
     staleTimes: { dynamic: 30 },
   },
-  // Card OCR runs on the server: keep tesseract unbundled and ship its model.
-  serverExternalPackages: ["tesseract.js"],
-  outputFileTracingIncludes: {
-    "/verify": ["./node_modules/@tesseract.js-data/eng/4.0.0_best_int/**", "./node_modules/tesseract.js-core/*lstm*"],
-  },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "*.public.blob.vercel-storage.com" }],
   },

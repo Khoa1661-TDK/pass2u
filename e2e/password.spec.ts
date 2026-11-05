@@ -46,6 +46,7 @@ test("forgot password sends a one-time link that sets a new password", async ({ 
 
   await page.goto("/login");
   await page.getByRole("link", { name: "Quên mật khẩu?" }).click();
+  await page.waitForURL(/forgot/);
   await page.getByLabel("Email").fill(email);
   await page.getByRole("button", { name: "Gửi liên kết" }).click();
   await expect(page.getByText(/Nếu email này có tài khoản/)).toBeVisible();

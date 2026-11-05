@@ -3,16 +3,11 @@
 import { useActionState } from "react";
 import { signup } from "@/app/actions/auth";
 import { FormMessage, SubmitButton } from "@/components/ui";
-import { shrinkImage } from "@/lib/shrink-image";
-import { StudentIdFields } from "@/components/student-id-fields";
+import { StudentFields } from "@/components/student-fields";
 import { COHORTS, MAJORS } from "@/lib/constants";
 
 export function SignupForm() {
-  const [state, action] = useActionState(async (prev: Parameters<typeof signup>[0], fd: FormData) => {
-    const f = fd.get("idCard");
-    if (f instanceof File && f.size) fd.set("idCard", await shrinkImage(f, 1800));
-    return signup(prev, fd);
-  }, undefined);
+  const [state, action] = useActionState(signup, undefined);
   const err = state?.error ? "form-error" : undefined;
   const v = state?.fields ?? {};
 
@@ -46,7 +41,7 @@ export function SignupForm() {
         <label htmlFor="residence" className="field-label">Nơi bạn đang ở</label>
         <input id="residence" name="residence" autoComplete="off" required maxLength={120} className="input" placeholder="KTX, lớp, hoặc địa chỉ đang ở" defaultValue={v.residence} aria-describedby={err} />
         <p className="field-hint">
-          Số điện thoại, căn cước, ngày sinh và nơi ở chỉ quản trị viên PASS2U xem được, dùng để xác minh và liên hệ khi có tranh chấp.
+          Số điện thoại, ngày sinh và nơi ở chỉ quản trị viên PASS2U xem được, dùng để xác minh và liên hệ khi có tranh chấp.
         </p>
       </div>
       <div className="grid gap-5 sm:grid-cols-2">
@@ -65,7 +60,7 @@ export function SignupForm() {
           </select>
         </div>
       </div>
-      <StudentIdFields defaults={{ studentCode: v.studentCode ?? "", campus: v.campus ?? "" }} />
+      <StudentFields defaults={{ studentCode: v.studentCode ?? "", campus: v.campus ?? "" }} />
       <SubmitButton className="btn btn-primary w-full" pending="Đang tạo tài khoản…">Tạo tài khoản</SubmitButton>
     </form>
   );

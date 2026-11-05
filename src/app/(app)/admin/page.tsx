@@ -9,7 +9,6 @@ import { SubmitButton } from "@/components/ui";
 import { RefreshForm } from "@/components/refresh-form";
 import { CheckTag } from "@/components/check-tag";
 import { timeAgo } from "@/lib/time";
-import { ID_RETENTION_DAYS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -17,30 +16,29 @@ export default async function VerificationQueue() {
   await requireAdmin();
   await purgeExpiredIds();
   const queue = await db
-    .select({ id: users.id, displayName: users.displayName, email: users.email, studentCode: users.studentCode, campus: users.campus, phone: users.phone, birthDate: users.birthDate, residence: users.residence, cohort: users.cohort, major: users.major, uploadedAt: idDocuments.uploadedAt, ocrCode: idDocuments.ocrCode, ocrNameMatch: idDocuments.ocrNameMatch, ocrLooksFpt: idDocuments.ocrLooksFpt })
+    .select({ id: users.id, displayName: users.displayName, email: users.email, studentCode: users.studentCode, campus: users.campus, phone: users.phone, birthDate: users.birthDate, residence: users.residence, cohort: users.cohort, major: users.major, createdAt: users.createdAt, uploadedAt: idDocuments.uploadedAt, ocrCode: idDocuments.ocrCode, ocrNameMatch: idDocuments.ocrNameMatch, ocrLooksFpt: idDocuments.ocrLooksFpt })
     .from(users)
     .leftJoin(idDocuments, eq(idDocuments.userId, users.id))
     .where(eq(users.verificationStatus, "pending"))
-    .orderBy(asc(idDocuments.uploadedAt));
+    .orderBy(asc(users.createdAt));
 
   if (!queue.length)
-    return <p className="py-14 text-center text-ink-3">Không có sinh viên đang chờ. Ảnh thẻ mới tải lên sẽ xuất hiện ở đây.</p>;
+    return <p className="py-14 text-center text-ink-3">Không có sinh viên đang chờ. Tài khoản mới đăng ký sẽ xuất hiện ở đây.</p>;
 
   return (
     <div>
       <p className="text-sm text-ink-3">
-        {queue.length} đang chờ, lâu nhất xếp trước. Kiểm tra tên và mã sinh viên khớp với thẻ, và thẻ trông thật. Ảnh sẽ bị xóa sau {ID_RETENTION_DAYS} ngày kể từ quyết định của bạn.
+        {queue.length} đang chờ, lâu nhất xếp trước. Đối chiếu tên, mã sinh viên và cơ sở với danh sách sinh viên FPT, hoặc gọi số điện thoại nếu cần.
       </p>
       <ul className="mt-6 divide-y divide-line border-y border-line">
         {queue.map((s) => (
-          <li key={s.id} className="grid gap-5 py-6 md:grid-cols-[minmax(0,420px)_1fr]">
-            {s.uploadedAt ? (
+          <li key={s.id} className={`grid gap-5 py-6 ${s.uploadedAt ? "md:grid-cols-[minmax(0,420px)_1fr]" : ""}`}>
+            {/* Only older sign-ups carry a card photo. */}
+            {s.uploadedAt && (
               <a href={`/api/admin/id/${s.id}`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg bg-sunken">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/api/admin/id/${s.id}`} alt={`Ảnh thẻ sinh viên do ${s.displayName} nộp`} className="aspect-[1.586] w-full object-contain" />
               </a>
-            ) : (
-              <div className="grid aspect-[1.586] place-items-center rounded-lg bg-sunken text-sm text-ink-3">Thiếu ảnh</div>
             )}
             <div className="flex flex-col">
               <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
@@ -52,13 +50,13 @@ export default async function VerificationQueue() {
                 <dt className="text-ink-3">Nơi ở</dt><dd>{s.residence ?? "—"}</dd>
                 {(s.cohort || s.major) && (<><dt className="text-ink-3">Khóa / Ngành</dt><dd>{[s.cohort, s.major].filter(Boolean).join(" · ")}</dd></>)}
                 <dt className="text-ink-3">Email</dt><dd className="break-all">{s.email}</dd>
-                <dt className="text-ink-3">Đã nộp</dt><dd>{s.uploadedAt ? timeAgo(s.uploadedAt) : "Không rõ"}</dd>
+                <dt className="text-ink-3">Đăng ký</dt><dd>{timeAgo(s.createdAt)}</dd>
               </dl>
-              <ul aria-label="Kiểm tra thẻ tự động" className="mt-4 flex flex-wrap gap-1.5">
+              {s.uploadedAt && <ul aria-label="Kiểm tra thẻ tự động" className="mt-4 flex flex-wrap gap-1.5">
                 <CheckTag ok={s.ocrCode == null ? null : s.ocrCode === s.studentCode} label={s.ocrCode ? `Mã trên thẻ ${s.ocrCode}` : "Không đọc được mã trên thẻ"} />
                 <CheckTag ok={s.ocrNameMatch} label={s.ocrNameMatch ? "Có tên trên thẻ" : s.ocrNameMatch === false ? "Không thấy tên trên thẻ" : "Chưa kiểm tra tên"} />
                 <CheckTag ok={s.ocrLooksFpt} label={s.ocrLooksFpt ? "Có chữ FPT" : s.ocrLooksFpt === false ? "Không có chữ FPT" : "Chưa kiểm tra thẻ"} />
-              </ul>
+              </ul>}
               <div className="mt-5 flex flex-wrap items-start gap-2 md:mt-auto">
                 <RefreshForm action={approveStudent.bind(null, s.id)}>
                   <SubmitButton pending="Đang duyệt…">Duyệt</SubmitButton>
@@ -67,7 +65,7 @@ export default async function VerificationQueue() {
                   <summary className="btn btn-danger list-none">Từ chối…</summary>
                   <RefreshForm action={rejectStudent.bind(null, s.id)} className="mt-3 w-[min(360px,80vw)] space-y-2">
                     <label htmlFor={`r-${s.id}`} className="field-label">Lý do hiển thị với sinh viên</label>
-                    <textarea id={`r-${s.id}`} name="reason" rows={2} className="input resize-none" defaultValue="Ảnh bị mờ hoặc mã sinh viên không khớp. Vui lòng tải lên ảnh rõ hơn." />
+                    <textarea id={`r-${s.id}`} name="reason" rows={2} className="input resize-none" defaultValue="Mã sinh viên không khớp với tên hoặc cơ sở. Vui lòng kiểm tra lại." />
                     <SubmitButton className="btn btn-danger btn-sm" pending="Đang từ chối…">Xác nhận từ chối</SubmitButton>
                   </RefreshForm>
                 </details>

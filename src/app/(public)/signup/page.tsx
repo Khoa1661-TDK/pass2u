@@ -4,14 +4,12 @@ import { AuthFrame } from "../auth-frame";
 import { SignupForm } from "./form";
 
 export const metadata: Metadata = { title: "Tạo tài khoản" };
-// Reading the card on submit can take a few seconds.
-export const maxDuration = 30;
 
 export default function Signup() {
   return (
     <AuthFrame
       title="Tạo tài khoản"
-      subtitle={<>Email nào cũng được. Quét hoặc chụp mặt trước thẻ sinh viên của bạn ngay tại đây.</>}
+      subtitle={<>Email nào cũng được. Không cần chụp thẻ: chỉ cần nhập mã sinh viên in trên thẻ, quản trị viên sẽ đối chiếu và duyệt.</>}
     >
       <SignupForm />
       <p className="mt-6 text-center text-sm text-ink-2">

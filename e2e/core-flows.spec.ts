@@ -1,4 +1,4 @@
-import { test, expect, devices, type Page, type Browser, type BrowserContext } from "@playwright/test";
+import { test, expect, type Page, type Browser, type BrowserContext } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import postgres from "postgres";
@@ -7,8 +7,8 @@ const LOG = process.env.NEXT_LOG ?? "next.log";
 const fx = (f: string) => path.join(__dirname, "fixtures", f);
 const run = Date.now().toString(36);
 
-// One card, one account: earlier runs' test accounts still hold the fixture
-// cards' codes, so release them (test accounts only) before signing up again.
+// One code, one account: earlier runs' test accounts still hold these
+// codes, so release them (test accounts only) before signing up again.
 const dbUrl = process.env.DATABASE_URL ?? readFileSync(".env.local", "utf8").match(/^DATABASE_URL=(.*)$/m)?.[1]?.replace(/^"|"$/g, "");
 async function releaseCode(code: string) {
   const sql = postgres(dbUrl!, { max: 1, onnotice: () => {} });
@@ -29,11 +29,8 @@ async function confirmLinkFor(email: string) {
   throw new Error("No confirmation email logged for " + email);
 }
 
-async function newPage(browser: Browser, camera = false) {
-  const ctx: BrowserContext = await browser.newContext({
-    ...test.info().project.use,
-    ...(camera ? { permissions: ["camera"] } : {}),
-  });
+async function newPage(browser: Browser) {
+  const ctx: BrowserContext = await browser.newContext({ ...test.info().project.use });
   return ctx.newPage();
 }
 
@@ -48,17 +45,14 @@ async function fillSignup(page: Page, name: string, email: string) {
   await page.getByLabel("Nơi bạn đang ở").fill("KTX FPT Hà Nội");
 }
 
-// The student ID is presented during sign-up now: code, campus, and card photo.
-// The name must match the name printed on the fixture card, so emails carry the tag.
-async function signUp(browser: Browser, name: string, code: string, card: string, tag = "") {
+// Sign-up takes the student code and campus. No card photo.
+async function signUp(browser: Browser, name: string, code: string, tag = "") {
   await releaseCode(code);
   const page = await newPage(browser);
   const email = `${name.split(" ")[0].toLowerCase()}.${run}${tag}@example.com`;
   await fillSignup(page, name, email);
   await page.getByLabel("Cơ sở").selectOption("Hà Nội");
-  await page.locator('input[name="idCard"]').setInputFiles(fx(card));
-  // Let the card reader finish so it can't overwrite the typed code.
-  await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('input[type="file"]')).toHaveCount(0);
   await page.getByLabel("Mã sinh viên").fill(code);
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
   await expect(page.getByRole("heading", { name: "Kiểm tra hộp thư" })).toBeVisible();
@@ -69,7 +63,7 @@ async function signUp(browser: Browser, name: string, code: string, card: string
 
   await page.goto(await confirmLinkFor(email));
   await page.getByRole("link", { name: "Tiếp tục", exact: true }).click();
-  await expect(page.getByRole("heading", { name: /Đang kiểm tra thẻ/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Đang kiểm tra thông tin/ })).toBeVisible();
 
   // Pending users still can't browse.
   await page.goto("/market");
@@ -91,17 +85,15 @@ async function approve(admin: Page, email: string) {
   await admin.goto("/admin");
   await admin.waitForLoadState("networkidle");
   const row = admin.locator("ul > li", { hasText: email }).first();
-  await expect(row.getByRole("img")).toBeVisible();
-  // Server-side card checks are shown to the admin.
-  await expect(row.getByLabel("Kiểm tra thẻ tự động")).toContainText("Có tên trên thẻ");
-  await expect(row.getByLabel("Kiểm tra thẻ tự động")).toContainText("Có chữ FPT");
+  // The admin checks the typed details; there is no card photo.
+  await expect(row.getByRole("img")).toHaveCount(0);
   await row.getByRole("button", { name: "Duyệt" }).click();
   await expect(admin.locator("li", { hasText: email })).toHaveCount(0, { timeout: 20_000 });
 }
 
-test("sign up with ID, verify, list, chat, reserve, complete", async ({ browser }) => {
-  const seller = await signUp(browser, "Lan Nguyen", "SE180001", "card-lan.png");
-  const buyer = await signUp(browser, "Minh Tran", "HE190002", "card-minh.png");
+test("sign up with student code, verify, list, chat, reserve, complete", async ({ browser }) => {
+  const seller = await signUp(browser, "Lan Nguyen", "SE180001");
+  const buyer = await signUp(browser, "Minh Tran", "HE190002");
 
   // ID photos are not visible to students.
   const sellerId = await seller.page.evaluate(() => fetch("/api/admin/id/00000000-0000-0000-0000-000000000000").then((r) => r.status));
@@ -135,7 +127,6 @@ test("sign up with ID, verify, list, chat, reserve, complete", async ({ browser 
   await expect(b).toHaveURL(/inbox\//);
   await expect(b.getByText("Chào bạn! Món này còn không?")).toBeVisible();
   await b.getByRole("button", { name: "Xin giữ món" }).click();
-  // The server is busy reading other tests' cards; give the action time.
   await expect(b.getByText("Đang chờ người bán chấp nhận")).toBeVisible({ timeout: 15_000 });
 
   // Seller accepts, then completes.
@@ -187,7 +178,7 @@ test("signed-out visitors are sent to sign in", async ({ page }) => {
 });
 
 test("admin opens a student record and approves from it", async ({ browser }) => {
-  const student = await signUp(browser, "Lan Nguyen", "SE180001", "card-lan.png", "r");
+  const student = await signUp(browser, "Lan Nguyen", "SE180001", "r");
   const admin = await adminLogin(browser);
 
   await admin.goto("/admin/users");
@@ -204,9 +195,7 @@ test("admin opens a student record and approves from it", async ({ browser }) =>
   await expect(admin.getByText("0912345678", { exact: true })).toBeVisible();
   await expect(admin.getByText("2002-01-01", { exact: true })).toBeVisible();
   await expect(admin.getByText("KTX FPT Hà Nội", { exact: true })).toBeVisible();
-  await expect(admin.getByRole("img", { name: /Ảnh thẻ sinh viên do Lan Nguyen nộp/ })).toBeVisible();
-  await expect(admin.getByLabel("Kiểm tra thẻ tự động")).toContainText("Có tên trên thẻ");
-  await expect(admin.getByLabel("Kiểm tra thẻ tự động")).toContainText("Có chữ FPT");
+  await expect(admin.getByText("Ảnh thẻ đã nộp")).toHaveCount(0);
   await expect(admin.getByText(/0 tin · 0 đang hoạt động/)).toBeVisible();
   await expect(admin.getByRole("link", { name: "Xem trang công khai" })).toBeVisible();
 
@@ -218,79 +207,31 @@ test("admin opens a student record and approves from it", async ({ browser }) =>
   await expect(student.page).toHaveURL(/market/);
 });
 
-test("card reader fills the student code and name from a photo", async ({ browser }) => {
-  test.setTimeout(120_000);
-  const page = await newPage(browser);
-  await page.goto("/signup");
-  await page.locator('input[name="idCard"]').setInputFiles(fx("card-ocr.png"));
-  await expect(page.getByText("Đã đọc được SE190123 và tên Ocrtest Lan từ thẻ của bạn", { exact: false })).toBeVisible({ timeout: 60_000 });
-  await expect(page.getByLabel("Mã sinh viên")).toHaveValue("SE190123");
-  await expect(page.getByLabel("Họ và tên")).toHaveValue("Ocrtest Lan");
+test("a rejected student fixes the code and goes back to the queue", async ({ browser }) => {
+  await releaseCode("SE180004");
+  const student = await signUp(browser, "Hoa Le", "SE180003", "x");
+  const admin = await adminLogin(browser);
+  await admin.goto("/admin");
+  const row = admin.locator("ul > li", { hasText: student.email }).first();
+  await row.getByText("Từ chối…").click();
+  await row.getByRole("button", { name: "Xác nhận từ chối" }).click();
+  await expect(admin.locator("li", { hasText: student.email })).toHaveCount(0, { timeout: 20_000 });
+
+  const p = student.page;
+  await p.goto("/verify");
+  await expect(p.getByText("Thông tin trước của bạn không được duyệt")).toBeVisible();
+  await p.getByLabel("Mã sinh viên").fill("SE180004");
+  await p.getByRole("button", { name: "Gửi duyệt lại" }).click();
+  await expect(p.getByRole("heading", { name: /Đang kiểm tra thông tin/ })).toBeVisible();
+  await expect(p.getByText("SE180004", { exact: true })).toBeVisible();
 });
 
-test("the scanner can hand off to the phone's camera app and read that photo", async ({ browser }) => {
-  test.setTimeout(120_000);
-  const page = await newPage(browser, true);
-  await page.goto("/signup");
-  await page.getByRole("button", { name: "Quét thẻ" }).click();
-  const dialog = page.getByRole("dialog", { name: "Quét thẻ sinh viên của bạn" });
-  const app = dialog.getByLabel("Dùng ứng dụng camera");
-  await expect(app).toHaveAttribute("capture", "environment");
-  await app.setInputFiles(fx("card-ocr.png"));
-  await expect(dialog).toBeHidden();
-  const files = await page.locator('input[name="idCard"]').evaluate((i) => (i as HTMLInputElement).files?.length);
-  expect(files).toBe(1);
-  await expect(page.getByLabel("Mã sinh viên")).toHaveValue("SE190123", { timeout: 60_000 });
-});
-
-test("the scanner opens the webcam and captures the framed card", async ({ browser }) => {
-  test.setTimeout(120_000);
-  const ctx = await browser.newContext({ ...devices["Desktop Chrome"], permissions: ["camera"] });
-  const page = await ctx.newPage();
-  await page.goto("/signup");
-  await page.getByRole("button", { name: "Quét thẻ" }).click();
-  const dialog = page.getByRole("dialog", { name: "Quét thẻ sinh viên của bạn" });
-  await expect(dialog).toBeVisible();
-  await page.waitForFunction(() => (document.querySelector("video") as HTMLVideoElement)?.videoWidth > 0);
-  if (process.env.SHOT_DIR) await page.screenshot({ path: `${process.env.SHOT_DIR}/scanner.png` });
-  await dialog.getByRole("button", { name: "Chụp thẻ" }).click();
-  await expect(dialog).toBeHidden();
-  await expect(page.getByAltText("Xem trước thẻ sinh viên của bạn")).toBeVisible();
-  const files = await page.locator('input[name="idCard"]').evaluate((i) => (i as HTMLInputElement).files?.length);
-  expect(files).toBe(1);
-});
-
-test("server rejects a card that doesn't match or isn't an FPT card", async ({ browser }) => {
-  test.setTimeout(120_000);
-  const page = await newPage(browser);
-  await fillSignup(page, "Checktest Hoa", `checktest.${run}@example.com`);
-  await page.getByLabel("Cơ sở").selectOption("Hà Nội");
-  await page.locator('input[name="idCard"]').setInputFiles(fx("card-lan.png"));
-  await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 60_000 });
-  await page.getByLabel("Mã sinh viên").fill("SE111111");
-  await page.getByRole("button", { name: "Tạo tài khoản" }).click();
-  await expect(page.getByText("Thẻ của bạn ghi SE180001, nhưng bạn nhập SE111111")).toBeVisible({ timeout: 60_000 });
-
-  await page.locator('input[name="idCard"]').setInputFiles(fx("item.png"));
-  await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 60_000 });
-  // The failed submit cleared the password (it is never echoed back), so type it again.
-  await page.getByLabel("Mật khẩu").fill("password123");
-  await page.getByLabel("Mã sinh viên").fill("SE111111");
-  await page.getByLabel("Cơ sở").selectOption("Hà Nội");
-  await page.getByRole("button", { name: "Tạo tài khoản" }).click();
-  await expect(page.getByText("Đây không giống thẻ sinh viên Đại học FPT")).toBeVisible({ timeout: 60_000 });
-  await expect(page).toHaveURL(/signup/);
-});
-
-test("one student card makes only one account", async ({ browser }) => {
-  test.setTimeout(120_000);
+test("one student code makes only one account", async ({ browser }) => {
   // The main flow already holds HE190002 with an approved account.
   const page = await newPage(browser);
   await fillSignup(page, "Minh Tran", `minh.${run}dup@example.com`);
   await page.getByLabel("Cơ sở").selectOption("Hà Nội");
-  await page.locator('input[name="idCard"]').setInputFiles(fx("card-minh.png"));
-  await expect(page.getByText(/từ thẻ của bạn|Không đọc được/)).toBeVisible({ timeout: 60_000 });
   await page.getByLabel("Mã sinh viên").fill("HE190002");
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
-  await expect(page.getByText("Mã sinh viên này đã được dùng cho một tài khoản khác")).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("Mã sinh viên này đã được dùng cho một tài khoản khác")).toBeVisible();
 });

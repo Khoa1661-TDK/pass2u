@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
-  ["/admin", "Duyệt thẻ"],
+  ["/admin", "Duyệt sinh viên"],
   ["/admin/reports", "Báo cáo"],
   ["/admin/users", "Sinh viên"],
 ];

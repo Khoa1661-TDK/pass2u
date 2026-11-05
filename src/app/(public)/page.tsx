@@ -14,7 +14,7 @@ import { ListingGrid } from "@/components/listing-card";
 import { FallbackImg } from "@/components/fallback-img";
 import {
   ArrowRight, MagnifyingGlass, BookOpenText, DeviceMobile, Armchair, TShirt, PencilSimpleLine,
-  Package, IdentificationCard, ShieldCheck, Trash,
+  Package, IdentificationCard, ShieldCheck,
 } from "@phosphor-icons/react/dist/ssr";
 import type { Icon } from "@phosphor-icons/react";
 
@@ -224,14 +224,14 @@ export default async function Landing() {
           <div>
             <h2 id="verify" className="font-serif text-[clamp(1.9rem,3.6vw,2.75rem)] font-normal leading-[1.08] tracking-[-0.01em]">Chỉ dành cho sinh viên — duyệt thủ công</h2>
             <p className="mt-3 max-w-[42ch] leading-relaxed text-ink-2">
-              Mọi tài khoản phải trình thẻ sinh viên FPT thật trước khi mua hoặc bán. Không người ngoài, không cò buôn.
+              Mọi tài khoản được quản trị viên đối chiếu mã sinh viên FPT trước khi mua hoặc bán. Không người ngoài, không cò buôn.
             </p>
           </div>
           <ol className="grid gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3">
             {[
-              { I: IdentificationCard, t: "Tải thẻ của bạn", b: "Ảnh thẻ sinh viên rõ nét." },
+              { I: IdentificationCard, t: "Nhập mã sinh viên", b: "Không cần chụp thẻ, chỉ cần mã và cơ sở." },
               { I: ShieldCheck, t: "Quản trị viên duyệt", b: "Người thật xem xét, không phải bot." },
-              { I: Trash, t: "Ảnh bị xóa", b: "Bị xóa trong vòng 30 ngày sau khi duyệt." },
+              { I: Package, t: "Bắt đầu mua bán", b: "Được duyệt là đăng tin và nhắn tin ngay." },
             ].map(({ I, t, b }) => (
               <li key={t} className="bg-raised p-5">
                 <I size={24} className="text-accent-ink" />

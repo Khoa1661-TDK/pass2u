@@ -6,14 +6,12 @@ import { createHash, randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 import { and, eq, gt } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, emailTokens, idDocuments, passwordResets } from "@/lib/schema";
+import { users, emailTokens, passwordResets } from "@/lib/schema";
 import { codeTaken, CODE_TAKEN } from "@/lib/code-taken";
 import { createSession, destroySession, getUser, gateFor } from "@/lib/session";
 import { sendEmail } from "@/lib/email";
 import { findReset } from "@/lib/password-reset";
 import { newPasswordSchema, setPassword } from "@/lib/set-password";
-import { checkImage } from "@/lib/storage";
-import { checkCard } from "@/lib/card-check";
 import { studentFieldsSchema, identityFieldsSchema } from "@/lib/validation";
 
 export type FormState = { error?: string; ok?: string; fields?: Record<string, string> } | undefined;
@@ -67,27 +65,11 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   if (exists) return { error: "Email này đã có tài khoản. Hãy đăng nhập.", fields };
   if (await codeTaken(studentCode)) return { error: CODE_TAKEN, fields };
 
-  // The student card is presented at sign-up, not as a later step.
-  const file = fd.get("idCard");
-  if (!(file instanceof File) || file.size === 0) return { error: "Thêm ảnh mặt trước thẻ sinh viên của bạn.", fields };
-  const bad = checkImage(file);
-  if (bad) return { error: bad, fields };
-
-  const image = Buffer.from(await file.arrayBuffer());
-
-  // Read the card here, where the student can't tamper with the result.
-  const card = await checkCard(image, displayName);
-  if (card && !card.ocrLooksFpt && !card.ocrCode)
-    return { error: "Đây không giống thẻ sinh viên Đại học FPT. Hãy chụp mặt trước thẻ, đặt phẳng và đủ ánh sáng.", fields };
-  if (card?.ocrCode && card.ocrCode !== studentCode)
-    return { error: `Thẻ của bạn ghi ${card.ocrCode}, nhưng bạn nhập ${studentCode}. Hãy sửa mã hoặc chụp lại ảnh.`, fields };
-
-  const ocr = card ?? { ocrCode: null, ocrNameMatch: null, ocrLooksFpt: null, ocrText: null };
+  // No card photo: an admin checks the student code and details before approving.
   const [u] = await db
     .insert(users)
     .values({ email, displayName, passwordHash: await bcrypt.hash(password, 10), studentCode, campus, phone, birthDate, residence, cohort, major, verificationStatus: "pending" })
     .returning();
-  await db.insert(idDocuments).values({ userId: u.id, image, mime: file.type, ...ocr });
   await sendConfirmation(u.id, u.email, u.displayName);
   await createSession(u.id);
   redirect("/check-email");

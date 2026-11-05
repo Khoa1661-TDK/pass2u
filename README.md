@@ -7,11 +7,11 @@ Secondhand marketplace for verified FPT University students: sell, swap, or give
 ## How access works
 
 1. Sign up with any email and password (FPT email not required).
-2. Present the student ID during sign-up: student code, campus, and a photo of the physical card (camera scan or upload).
+2. Enter the student code and campus during sign-up. No card photo is needed.
 3. Confirm the email through the link we send (Resend; without a key the link is printed to the server log).
-4. An admin approves or rejects it at `/admin`. Only approved students (and admins) can use the marketplace. Rejected students re-submit the card at `/verify`.
+4. An admin checks the student code and details and approves or rejects at `/admin`. Only approved students (and admins) can use the marketplace. Rejected students fix their code at `/verify`.
 
-ID photos are stored in Postgres, never in public storage, and are only served to admins through `/api/admin/id/[userId]`. They are deleted 30 days after review by a daily Vercel cron (`/api/cron/purge-ids`) and whenever an admin opens the queue.
+Older accounts may still have a card photo from before photos were dropped. Those are stored in Postgres, never in public storage, and are only served to admins through `/api/admin/id/[userId]`. They are deleted 30 days after review by a daily Vercel cron (`/api/cron/purge-ids`) and whenever an admin opens the queue.
 
 Authorization is enforced on the server in every page and server action (`src/lib/session.ts`): `requireApproved`, `requireAdmin`, plus ownership checks on listings and conversations.
 

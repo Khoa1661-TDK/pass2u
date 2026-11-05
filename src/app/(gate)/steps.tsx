@@ -1,4 +1,4 @@
-const steps = ["Tài khoản", "Email", "Thẻ sinh viên", "Đã duyệt"];
+const steps = ["Tài khoản", "Email", "Mã sinh viên", "Đã duyệt"];
 
 export function Steps({ current }: { current: number }) {
   return (

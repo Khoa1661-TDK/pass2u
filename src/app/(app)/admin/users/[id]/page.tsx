@@ -112,7 +112,7 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
                 <summary className="btn btn-danger btn-sm list-none">Từ chối…</summary>
                 <RefreshForm action={rejectStudent.bind(null, u.id)} className="mt-3 w-[min(360px,80vw)] space-y-2">
                   <label htmlFor="reject-reason" className="field-label">Lý do hiển thị với sinh viên</label>
-                  <textarea id="reject-reason" name="reason" rows={2} className="input resize-none" defaultValue="Ảnh bị mờ hoặc mã sinh viên không khớp. Vui lòng tải lên ảnh rõ hơn." />
+                  <textarea id="reject-reason" name="reason" rows={2} className="input resize-none" defaultValue="Mã sinh viên không khớp với tên hoặc cơ sở. Vui lòng kiểm tra lại." />
                   <SubmitButton className="btn btn-danger btn-sm" pending="Đang từ chối…">Xác nhận từ chối</SubmitButton>
                 </RefreshForm>
               </details>
@@ -151,9 +151,10 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
         </section>
       )}
 
+      {/* Only older sign-ups carry a card photo. */}
+      {doc && (
       <section className="mt-10">
         <h3 className="text-sm font-semibold text-ink">Ảnh thẻ đã nộp</h3>
-        {doc ? (
           <>
             <a href={`/api/admin/id/${u.id}`} target="_blank" rel="noreferrer" className="mt-3 block max-w-[560px] overflow-hidden rounded-lg bg-sunken">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -175,10 +176,8 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
               {doc.deleteAfter ? `Ảnh sẽ bị xóa ${timeAgo(doc.deleteAfter)}.` : u.verificationStatus === "approved" ? "Ảnh thẻ được lưu cùng tài khoản." : `Nếu bị từ chối, ảnh bị xóa sau ${ID_RETENTION_DAYS} ngày.`}
             </p>
           </>
-        ) : (
-          <p className="mt-3 text-ink-3">Sinh viên này chưa nộp ảnh thẻ.</p>
-        )}
       </section>
+      )}
 
       <section className="mt-10">
         <h3 className="text-sm font-semibold text-ink">Tin đăng</h3>
