@@ -12,7 +12,6 @@ import type { FormState } from "./auth";
 // Resubmit the student code after a rejection. No card photo is needed.
 export async function submitVerification(_: FormState, fd: FormData): Promise<FormState> {
   const u = await requireUser();
-  if (!u.emailVerifiedAt) redirect("/check-email");
   if (u.verificationStatus === "approved") redirect("/market");
 
   const fields = { studentCode: String(fd.get("studentCode") ?? ""), campus: String(fd.get("campus") ?? "") };

@@ -4,9 +4,9 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { createHash, randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
-import { and, eq, gt } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, emailTokens, passwordResets } from "@/lib/schema";
+import { users, passwordResets } from "@/lib/schema";
 import { codeTaken, CODE_TAKEN } from "@/lib/code-taken";
 import { createSession, destroySession, getUser, gateFor } from "@/lib/session";
 import { sendEmail } from "@/lib/email";
@@ -17,23 +17,6 @@ import { studentFieldsSchema, identityFieldsSchema } from "@/lib/validation";
 export type FormState = { error?: string; ok?: string; fields?: Record<string, string> } | undefined;
 
 const hash = (t: string) => createHash("sha256").update(t).digest("hex");
-
-async function sendConfirmation(userId: string, email: string, name: string) {
-  const token = randomBytes(32).toString("base64url");
-  await db.delete(emailTokens).where(eq(emailTokens.userId, userId));
-  await db.insert(emailTokens).values({
-    tokenHash: hash(token),
-    userId,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
-  });
-  const link = `${process.env.APP_URL ?? "http://localhost:3000"}/confirm?token=${token}`;
-  await sendEmail(
-    email,
-    "Xác nhận email PASS2U của bạn",
-    `<p>Chào ${name.replace(/[<>&]/g, "")},</p><p>Hãy xác nhận email để tiếp tục thiết lập PASS2U:</p><p><a href="${link}">Xác nhận email</a></p><p>Liên kết này hết hạn sau 24 giờ.</p>`,
-    `Liên kết xác nhận: ${link}`,
-  );
-}
 
 const signupSchema = z.object({
   displayName: z.string().trim().min(2, "Nhập tên của bạn (ít nhất 2 ký tự).").max(60),
@@ -70,9 +53,9 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
     .insert(users)
     .values({ email, displayName, passwordHash: await bcrypt.hash(password, 10), studentCode, campus, phone, birthDate, residence, cohort, major, verificationStatus: "pending" })
     .returning();
-  await sendConfirmation(u.id, u.email, u.displayName);
+  // No email confirmation step: go straight to the approval wait.
   await createSession(u.id);
-  redirect("/check-email");
+  redirect("/verify");
 }
 
 export async function login(_: FormState, fd: FormData): Promise<FormState> {
@@ -91,25 +74,6 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
 export async function logout() {
   await destroySession();
   redirect("/");
-}
-
-export async function resendConfirmation(): Promise<FormState> {
-  const u = await getUser();
-  if (!u) redirect("/login");
-  if (u.emailVerifiedAt) redirect("/verify");
-  await sendConfirmation(u.id, u.email, u.displayName);
-  return { ok: "Đã gửi lại liên kết. Hãy kiểm tra hộp thư và thư mục spam." };
-}
-
-export async function confirmEmail(token: string) {
-  const [row] = await db
-    .select()
-    .from(emailTokens)
-    .where(and(eq(emailTokens.tokenHash, hash(token)), gt(emailTokens.expiresAt, new Date())));
-  if (!row) return false;
-  await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, row.userId));
-  await db.delete(emailTokens).where(eq(emailTokens.userId, row.userId));
-  return true;
 }
 
 // Same reply whether or not the email has an account, so the form can't be
@@ -147,10 +111,8 @@ export async function resetPassword(_: FormState, fd: FormData): Promise<FormSta
   const [u] = await db.select().from(users).where(eq(users.id, row.userId));
   if (!u || u.bannedAt) return { error: "Tài khoản này đã bị khóa. Hãy liên hệ đội ngũ PASS2U." };
   await setPassword(u.id, p.data);
-  // The link reached their inbox, so the email is theirs.
-  if (!u.emailVerifiedAt) await db.update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, u.id));
   await createSession(u.id);
-  redirect(gateFor({ ...u, emailVerifiedAt: u.emailVerifiedAt ?? new Date() }) ?? "/market");
+  redirect(gateFor(u) ?? "/market");
 }
 
 export async function changePassword(_: FormState, fd: FormData): Promise<FormState> {

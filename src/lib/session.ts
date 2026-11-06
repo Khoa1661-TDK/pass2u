@@ -53,12 +53,11 @@ export const getUser = cache(async (): Promise<User | null> => {
 export function gateFor(u: User | null): string | null {
   if (!u) return "/login";
   if (u.role === "admin") return null;
-  if (!u.emailVerifiedAt) return "/check-email";
   if (u.verificationStatus !== "approved") return "/verify";
   return null;
 }
 
-/** Signed in, email confirmed, and student ID approved (or admin). */
+/** Signed in and student code approved (or admin). */
 export async function requireApproved() {
   const u = await getUser();
   const to = gateFor(u);

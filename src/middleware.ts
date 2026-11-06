@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED = ["/market", "/listings", "/inbox", "/me", "/u/", "/admin", "/verify", "/check-email"];
+const PROTECTED = ["/market", "/listings", "/inbox", "/me", "/u/", "/admin", "/verify"];
 
 // Fast redirect for signed-out visitors. Real authorization happens on the
 // server in every page and action (see lib/session.ts).

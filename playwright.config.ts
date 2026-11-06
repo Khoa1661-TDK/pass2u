@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // Run against a server started with `npm run build && npm start > next.log`.
-// Confirmation links are read from that log (no RESEND_API_KEY in test).
+// Password reset links are read from that log (no RESEND_API_KEY in test).
 export default defineConfig({
   testDir: "e2e",
   timeout: 60_000,

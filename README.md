@@ -8,7 +8,7 @@ Secondhand marketplace for verified FPT University students: sell, swap, or give
 
 1. Sign up with any email and password (FPT email not required).
 2. Enter the student code and campus during sign-up. No card photo is needed.
-3. Confirm the email through the link we send (Resend; without a key the link is printed to the server log).
+3. There is no email confirmation step: the account waits for an admin right away.
 4. An admin checks the student code and details and approves or rejects at `/admin`. Only approved students (and admins) can use the marketplace. Rejected students fix their code at `/verify`.
 
 Older accounts may still have a card photo from before photos were dropped. Those are stored in Postgres, never in public storage, and are only served to admins through `/api/admin/id/[userId]`. They are deleted 30 days after review by a daily Vercel cron (`/api/cron/purge-ids`) and whenever an admin opens the queue.

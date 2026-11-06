@@ -73,7 +73,6 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
           <h2 className="font-serif text-2xl font-normal leading-tight">{u.displayName}</h2>
           <p className="mt-1 text-sm text-ink-2">
             {u.email}
-            {!u.emailVerifiedAt && <span className="text-ink-3"> (chưa xác nhận email)</span>}
           </p>
         </div>
         <div className="flex flex-wrap gap-1.5 md:ml-auto">
@@ -95,7 +94,6 @@ export default async function StudentRecord({ params }: { params: Promise<{ id: 
         <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Khóa</dt><dd>{u.cohort ?? "—"}</dd></div>
         <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Ngành học</dt><dd>{u.major ?? "—"}</dd></div>
         <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Tham gia</dt><dd>{fmt(u.createdAt)}</dd></div>
-        <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Email xác nhận lúc</dt><dd>{u.emailVerifiedAt ? fmt(u.emailVerifiedAt) : "—"}</dd></div>
         {u.verifiedAt && <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Được duyệt lúc</dt><dd>{fmt(u.verifiedAt)}</dd></div>}
         {u.rejectionReason && <div className="flex justify-between gap-4 sm:block"><dt className="text-ink-3">Lý do từ chối gần nhất</dt><dd className="text-danger">{u.rejectionReason}</dd></div>}
         {u.bio && <div className="flex justify-between gap-4 sm:block sm:col-span-2"><dt className="text-ink-3">Giới thiệu</dt><dd>{u.bio}</dd></div>}

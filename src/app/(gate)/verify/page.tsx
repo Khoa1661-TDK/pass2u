@@ -8,14 +8,13 @@ export const metadata = { title: "Xác minh sinh viên" };
 export default async function Verify() {
   const u = await requireUser();
   if (u.role === "admin") redirect("/admin");
-  if (!u.emailVerifiedAt) redirect("/check-email");
   if (u.verificationStatus === "approved") redirect("/market");
 
   if (u.verificationStatus === "pending")
     return (
       <>
-        {/* Details submitted, approval still pending: step 3 stays the active one. */}
-        <Steps current={2} />
+        {/* Details submitted, approval still pending: step 2 stays the active one. */}
+        <Steps current={1} />
         <span className="tag bg-warn-soft text-warn">Đang chờ duyệt</span>
         <h1 className="mt-3 font-serif text-[2.25rem] font-normal leading-tight">Đang kiểm tra thông tin của bạn</h1>
         <p className="mt-3 text-ink-2">
@@ -32,7 +31,7 @@ export default async function Verify() {
 
   return (
     <>
-      <Steps current={2} />
+      <Steps current={1} />
       {u.verificationStatus === "rejected" && (
         <div role="alert" className="alert mb-6 bg-danger-soft text-danger">
           <p className="font-semibold">Thông tin trước của bạn không được duyệt</p>

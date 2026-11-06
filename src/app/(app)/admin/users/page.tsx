@@ -51,7 +51,7 @@ export default async function Students({ searchParams }: { searchParams: Promise
             </div>
             <span className="col-start-1 row-start-2 font-mono text-ink-2 sm:col-start-auto sm:row-start-auto sm:text-ink">{u.studentCode ?? "Chưa có"}</span>
             <span className="col-start-1 row-start-3 min-w-0 truncate text-ink-2 sm:col-start-auto sm:row-start-auto">
-              {u.email}{!u.emailVerifiedAt && <span className="text-ink-3"> (chưa xác nhận)</span>}
+              {u.email}
             </span>
             <span className="col-start-2 row-start-1 justify-self-end sm:col-start-auto sm:row-start-auto sm:justify-self-start">
               {u.bannedAt ? <span className="tag bg-danger text-on-danger">Đã khóa</span> : <span className={`tag ${statusTag[u.verificationStatus]}`}>{statusLabel[u.verificationStatus] ?? u.verificationStatus}</span>}

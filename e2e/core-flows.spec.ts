@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import postgres from "postgres";
 
-const LOG = process.env.NEXT_LOG ?? "next.log";
 const fx = (f: string) => path.join(__dirname, "fixtures", f);
 const run = Date.now().toString(36);
 
@@ -14,19 +13,6 @@ async function releaseCode(code: string) {
   const sql = postgres(dbUrl!, { max: 1, onnotice: () => {} });
   await sql`update users set verification_status = 'rejected' where student_code = ${code} and email like '%@example.com'`;
   await sql.end();
-}
-
-async function confirmLinkFor(email: string) {
-  for (let i = 0; i < 20; i++) {
-    const log = readFileSync(LOG, "utf8");
-    const at = log.lastIndexOf(`to=${email}`);
-    if (at >= 0) {
-      const m = log.slice(at).match(/Liên kết xác nhận: (\S+)/);
-      if (m) return m[1];
-    }
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  throw new Error("No confirmation email logged for " + email);
 }
 
 async function newPage(browser: Browser) {
@@ -55,14 +41,7 @@ async function signUp(browser: Browser, name: string, code: string, tag = "") {
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
   await page.getByLabel("Mã sinh viên").fill(code);
   await page.getByRole("button", { name: "Tạo tài khoản" }).click();
-  await expect(page.getByRole("heading", { name: "Kiểm tra hộp thư" })).toBeVisible();
-
-  // Unconfirmed users can't reach the marketplace.
-  await page.goto("/market");
-  await expect(page).toHaveURL(/check-email/);
-
-  await page.goto(await confirmLinkFor(email));
-  await page.getByRole("link", { name: "Tiếp tục", exact: true }).click();
+  // No email confirmation: sign-up goes straight to the approval wait.
   await expect(page.getByRole("heading", { name: /Đang kiểm tra thông tin/ })).toBeVisible();
 
   // Pending users still can't browse.
