@@ -77,8 +77,8 @@ test("blob private-store upload error shows inline, form survives", async ({ bro
   // 1. Actionable Vietnamese message, straight from blobError() in storage.ts.
   // #form-error, not getByRole("alert"): Next.js also mounts an empty route-announcer alert.
   const alert = page.locator("#form-error");
-  await expect(alert).toContainText("Blob store đang kết nối là store private", { timeout: 30_000 });
-  await expect(alert).toContainText("Access = Public");
+  await expect(alert).toContainText("Blob store private cũ", { timeout: 30_000 });
+  await expect(alert).toContainText("Environment Variables");
   // 2. The raw SDK/API text must not leak to the user.
   await expect(page.getByText(/Cannot use public access on a private store/)).toHaveCount(0);
   // 3. No crash: still on the form, listing was NOT created.
