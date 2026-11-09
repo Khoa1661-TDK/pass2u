@@ -24,7 +24,7 @@ export const CAMPUSES = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Cần Th
 
 // FPT enrolment cohorts ("K" + intake year) and the main faculties. Optional
 // at sign-up; they help admins place a student inside the school.
-export const COHORTS = ["K21", "K22", "K23", "K24", "K25", "K26"] as const;
+export const COHORTS = ["K19", "K20", "K21", "K22", "K23", "K24", "K25", "K26"] as const;
 
 export const MAJORS = [
   "Công nghệ thông tin",
