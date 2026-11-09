@@ -65,7 +65,12 @@ export async function createListing(_: FormState, fd: FormData): Promise<FormSta
     if (bad) return { error: bad, fields };
   }
 
-  const urls = await Promise.all(files.map(uploadListingImage));
+  let urls: string[];
+  try {
+    urls = await Promise.all(files.map(uploadListingImage));
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e), fields };
+  }
   const [l] = await db.insert(listings).values({ ...parsed.data, sellerId: u.id, campus: u.campus }).returning();
   await db.insert(listingImages).values(urls.map((url, i) => ({ listingId: l.id, url, position: i })));
   revalidateTag(LISTINGS_TAG);
@@ -98,7 +103,12 @@ export async function updateListing(id: string, _: FormState, fd: FormData): Pro
     await db.delete(listingImages).where(inArray(listingImages.id, dropped.map((d) => d.id)));
     await deleteListingImages(dropped.map((d) => d.url));
   }
-  const urls = await Promise.all(files.map(uploadListingImage));
+  let urls: string[];
+  try {
+    urls = await Promise.all(files.map(uploadListingImage));
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e), fields };
+  }
   if (urls.length)
     await db.insert(listingImages).values(urls.map((url, i) => ({ listingId: id, url, position: kept.length + i })));
 

@@ -19,13 +19,31 @@ export function checkImage(f: File) {
  * stores connected after the OIDC change, via BLOB_STORE_ID + VERCEL_OIDC_TOKEN. */
 const blobConfigured = () => !!(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 
+/** Translate raw Blob failures into actionable Vietnamese messages. A store's
+ * access mode (public/private) is fixed at creation and cannot be flipped, so
+ * a mismatch between `access: "public"` below and a private store can only be
+ * fixed in the Vercel dashboard — say exactly that instead of a stack trace. */
+function blobError(e: unknown): Error {
+  const m = e instanceof Error ? e.message : String(e);
+  if (m.includes("public access on a private store")) {
+    return new Error(
+      "Upload đang gửi tới một Blob store private cũ, không phải store Public đã nối. Vào Vercel → project → Settings → Environment Variables: xóa BLOB_STORE_ID / BLOB_READ_WRITE_TOKEN cũ (thủ công), đảm bảo store Public được connect vào Production, rồi redeploy.",
+    );
+  }
+  return new Error(`Không upload được ảnh lên Blob: ${m}`);
+}
+
 /** Public listing photos. Uses Vercel Blob in production, ./.uploads locally. */
 export async function uploadListingImage(f: File): Promise<string> {
   const ext = f.type.split("/")[1];
   const name = `listings/${randomUUID()}.${ext}`;
   if (blobConfigured()) {
-    const blob = await put(name, f, { access: "public", contentType: f.type });
-    return blob.url;
+    try {
+      const blob = await put(name, f, { access: "public", contentType: f.type });
+      return blob.url;
+    } catch (e) {
+      throw blobError(e);
+    }
   }
   // No Blob credential at all. Vercel's serverless filesystem is read-only,
   // so the local fallback below would crash with ENOENT — fail with a clear
