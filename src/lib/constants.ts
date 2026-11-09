@@ -22,9 +22,14 @@ export const TYPES = [
 
 export const CAMPUSES = ["Hà Nội", "Hồ Chí Minh", "Đà Nẵng", "Cần Thơ", "Quy Nhơn"] as const;
 
-// FPT enrolment cohorts ("K" + intake year) and the main faculties. Optional
-// at sign-up; they help admins place a student inside the school.
-export const COHORTS = ["K19", "K20", "K21", "K22", "K23", "K24", "K25", "K26"] as const;
+// FPT enrolment cohorts ("K" + last two digits of intake year) and the main
+// faculties. Optional at sign-up; they help admins place a student inside the
+// school. Generated from the current year so new intakes appear automatically
+// (K16–K27 in 2026, K17–K28 in 2027…): ten cohorts back, plus the next intake.
+export const COHORTS = Array.from(
+  { length: 12 },
+  (_, i) => `K${new Date().getFullYear() - 2010 + i}`,
+);
 
 export const MAJORS = [
   "Công nghệ thông tin",
